@@ -110,9 +110,13 @@
 
 .temperature {
     min-width: 0;
-    font-size: clamp(3rem, 9vw, 5.5rem);
+    font-size: clamp(2.75rem, 8vw, 5.2rem);
     font-weight: 800;
-    letter-spacing: -.08em;
+    letter-spacing: -.03em;
+    white-space: nowrap;
+    line-height: 1.05;
+    padding-right: 0.15em;
+    overflow: visible;
 }
 
 .weather-details {

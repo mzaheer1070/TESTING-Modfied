@@ -388,6 +388,206 @@
         });
     }
 
+    function renderWeatherTrends(hourly) {
+        const wrapper = $('trendsGraphWrapper');
+        if (!wrapper || !hourly?.time?.length) return;
+
+        wrapper.replaceChildren();
+
+        const count = Math.min(24, hourly.time.length);
+        const times = hourly.time.slice(0, count);
+        const temps = hourly.temperature_2m.slice(0, count).map(t => Units.temp(t));
+        const rainAmounts = hourly.precipitation ? hourly.precipitation.slice(0, count) : [];
+        const rainProbs = hourly.precipitation_probability ? hourly.precipitation_probability.slice(0, count) : [];
+
+        const width = 760;
+        const height = 240;
+        const padding = { top: 32, right: 35, bottom: 44, left: 45 };
+        const chartW = width - padding.left - padding.right;
+        const chartH = height - padding.top - padding.bottom;
+
+        const minTemp = Math.floor(Math.min(...temps)) - 2;
+        const maxTemp = Math.ceil(Math.max(...temps)) + 2;
+        const tempRange = Math.max(maxTemp - minTemp, 4);
+
+        const maxRainProb = Math.max(100, ...rainProbs);
+
+        const getX = i => padding.left + (i / (count - 1)) * chartW;
+        const getYTemp = t => padding.top + chartH - ((t - minTemp) / tempRange) * chartH;
+        const getYRainProb = p => padding.top + chartH - (p / maxRainProb) * (chartH * 0.85);
+
+        // Tooltip container
+        const tooltip = document.createElement('div');
+        tooltip.className = 'chart-tooltip';
+        wrapper.appendChild(tooltip);
+
+        // Build SVG
+        const svgNS = 'http://www.w3.org/2000/svg';
+        const svg = document.createElementNS(svgNS, 'svg');
+        svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+        svg.setAttribute('class', 'weather-trend-svg');
+
+        // Defs for gradients
+        const defs = document.createElementNS(svgNS, 'defs');
+        defs.innerHTML = `
+            <linearGradient id="tempGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#ffaa40" stop-opacity="0.38"/>
+                <stop offset="100%" stop-color="#ff7043" stop-opacity="0.02"/>
+            </linearGradient>
+            <linearGradient id="rainGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.65"/>
+                <stop offset="100%" stop-color="#0284c7" stop-opacity="0.2"/>
+            </linearGradient>
+        `;
+        svg.appendChild(defs);
+
+        // Horizontal gridlines & Y-axis labels
+        const gridSteps = 4;
+        for (let s = 0; s <= gridSteps; s++) {
+            const tempVal = minTemp + (tempRange * (s / gridSteps));
+            const yPos = getYTemp(tempVal);
+
+            const line = document.createElementNS(svgNS, 'line');
+            line.setAttribute('x1', padding.left);
+            line.setAttribute('x2', width - padding.right);
+            line.setAttribute('y1', yPos);
+            line.setAttribute('y2', yPos);
+            line.setAttribute('class', 'grid-line');
+            svg.appendChild(line);
+
+            const yText = document.createElementNS(svgNS, 'text');
+            yText.setAttribute('x', padding.left - 10);
+            yText.setAttribute('y', yPos + 4);
+            yText.setAttribute('text-anchor', 'end');
+            yText.setAttribute('class', 'axis-text');
+            yText.textContent = `${Math.round(tempVal)}°`;
+            svg.appendChild(yText);
+        }
+
+        // Rain precipitation probability bars
+        const barWidth = Math.max(6, (chartW / count) * 0.55);
+        for (let i = 0; i < count; i++) {
+            const prob = rainProbs[i] !== undefined ? rainProbs[i] : (rainAmounts[i] > 0 ? 60 : 0);
+            const x = getX(i) - (barWidth / 2);
+            const y = getYRainProb(prob);
+            const barH = (padding.top + chartH) - y;
+
+            if (prob > 0 && barH > 2) {
+                const rect = document.createElementNS(svgNS, 'rect');
+                rect.setAttribute('x', x);
+                rect.setAttribute('y', y);
+                rect.setAttribute('width', barWidth);
+                rect.setAttribute('height', barH);
+                rect.setAttribute('rx', 3);
+                rect.setAttribute('class', 'chart-bar');
+                rect.setAttribute('fill', 'url(#rainGradient)');
+                rect.setAttribute('opacity', '0.75');
+
+                const timeStr = new Date(times[i]).toLocaleTimeString('en-US', { hour: 'numeric' });
+                const rainAmt = rainAmounts[i] !== undefined ? `${Units.rain(rainAmounts[i]).toFixed(1)} ${Units.rainUnit()}` : '';
+
+                rect.addEventListener('mouseenter', e => {
+                    tooltip.innerHTML = `<strong>${timeStr}</strong><br/>💧 Rain chance: ${prob}%${rainAmt ? `<br/>Precipitation: ${rainAmt}` : ''}`;
+                    const rectBox = wrapper.getBoundingClientRect();
+                    const eBox = rect.getBoundingClientRect();
+                    tooltip.style.left = `${(eBox.left + eBox.width / 2) - rectBox.left}px`;
+                    tooltip.style.top = `${eBox.top - rectBox.top}px`;
+                    tooltip.style.opacity = '1';
+                });
+
+                rect.addEventListener('mouseleave', () => {
+                    tooltip.style.opacity = '0';
+                });
+
+                svg.appendChild(rect);
+            }
+        }
+
+        // Smooth area under temperature curve
+        let areaPathD = `M ${getX(0)} ${getYTemp(temps[0])}`;
+        for (let i = 0; i < count - 1; i++) {
+            const x0 = getX(i);
+            const y0 = getYTemp(temps[i]);
+            const x1 = getX(i + 1);
+            const y1 = getYTemp(temps[i + 1]);
+            const mx = (x0 + x1) / 2;
+            areaPathD += ` C ${mx} ${y0}, ${mx} ${y1}, ${x1} ${y1}`;
+        }
+        areaPathD += ` L ${getX(count - 1)} ${padding.top + chartH} L ${getX(0)} ${padding.top + chartH} Z`;
+
+        const areaPath = document.createElementNS(svgNS, 'path');
+        areaPath.setAttribute('d', areaPathD);
+        areaPath.setAttribute('fill', 'url(#tempGradient)');
+        svg.appendChild(areaPath);
+
+        // Smooth temperature line
+        let linePathD = `M ${getX(0)} ${getYTemp(temps[0])}`;
+        for (let i = 0; i < count - 1; i++) {
+            const x0 = getX(i);
+            const y0 = getYTemp(temps[i]);
+            const x1 = getX(i + 1);
+            const y1 = getYTemp(temps[i + 1]);
+            const mx = (x0 + x1) / 2;
+            linePathD += ` C ${mx} ${y0}, ${mx} ${y1}, ${x1} ${y1}`;
+        }
+
+        const linePath = document.createElementNS(svgNS, 'path');
+        linePath.setAttribute('d', linePathD);
+        linePath.setAttribute('fill', 'none');
+        linePath.setAttribute('stroke', '#ffaa40');
+        linePath.setAttribute('stroke-width', '3');
+        linePath.setAttribute('stroke-linecap', 'round');
+        linePath.setAttribute('filter', 'drop-shadow(0 2px 8px rgba(255, 170, 64, 0.4))');
+        svg.appendChild(linePath);
+
+        // Interactive points on temperature line
+        for (let i = 0; i < count; i++) {
+            const x = getX(i);
+            const y = getYTemp(temps[i]);
+
+            const circle = document.createElementNS(svgNS, 'circle');
+            circle.setAttribute('cx', x);
+            circle.setAttribute('cy', y);
+            circle.setAttribute('r', '4');
+            circle.setAttribute('fill', '#ffffff');
+            circle.setAttribute('stroke', '#ff7043');
+            circle.setAttribute('stroke-width', '2');
+            circle.setAttribute('class', 'chart-point');
+
+            const timeStr = new Date(times[i]).toLocaleTimeString('en-US', { hour: 'numeric' });
+            const tempVal = Math.round(temps[i]);
+            const prob = rainProbs[i] !== undefined ? `${rainProbs[i]}%` : '0%';
+
+            circle.addEventListener('mouseenter', () => {
+                tooltip.innerHTML = `<strong>${timeStr}</strong><br/>🌡️ Temp: <strong>${tempVal}${Units.tempUnit()}</strong><br/>💧 Rain chance: ${prob}`;
+                const rectBox = wrapper.getBoundingClientRect();
+                const eBox = circle.getBoundingClientRect();
+                tooltip.style.left = `${(eBox.left + eBox.width / 2) - rectBox.left}px`;
+                tooltip.style.top = `${eBox.top - rectBox.top}px`;
+                tooltip.style.opacity = '1';
+            });
+
+            circle.addEventListener('mouseleave', () => {
+                tooltip.style.opacity = '0';
+            });
+
+            svg.appendChild(circle);
+
+            // Time labels on X-axis (every 3 hours or key intervals)
+            if (i % 3 === 0 || i === count - 1) {
+                const xText = document.createElementNS(svgNS, 'text');
+                xText.setAttribute('x', x);
+                xText.setAttribute('y', height - 12);
+                xText.setAttribute('text-anchor', 'middle');
+                xText.setAttribute('class', 'axis-text');
+                xText.textContent = timeStr;
+                svg.appendChild(xText);
+            }
+        }
+
+        wrapper.appendChild(svg);
+    }
+
     function updateHourlyVisibility() {
         const timeline = $('hourlyTimeline');
         const toggle = $('hourlyToggle');
@@ -399,6 +599,7 @@
 
         if (hourlyMode && lastWeatherData?.hourly) {
             renderHourlyTimeline(lastWeatherData.hourly);
+            renderWeatherTrends(lastWeatherData.hourly);
         }
     }
 
@@ -437,6 +638,26 @@
                 </div>
 
                 <div id="hourlyTimeline" class="hourly-timeline"></div>
+            </div>
+
+            <div class="feature-card trends-feature">
+                <div class="trends-header">
+                    <div>
+                        <p class="feature-label">24-HOUR TRENDS</p>
+                        <h3 class="section-title">Temperature & Rain</h3>
+                    </div>
+                    <div class="trends-legend">
+                        <span class="legend-item">
+                            <span class="legend-indicator legend-temp"></span>
+                            Temperature
+                        </span>
+                        <span class="legend-item">
+                            <span class="legend-indicator legend-rain"></span>
+                            Precipitation Probability
+                        </span>
+                    </div>
+                </div>
+                <div id="trendsGraphWrapper" class="chart-wrapper"></div>
             </div>
         `;
 
@@ -491,6 +712,10 @@
             if (hourlyMode) {
                 renderHourlyTimeline(data.hourly);
             }
+        }
+
+        if (data.hourly) {
+            renderWeatherTrends(data.hourly);
         }
     }
 
@@ -690,7 +915,7 @@
                 'visibility',
                 'is_day'
             ].join(','),
-            hourly: 'temperature_2m,weather_code',
+            hourly: 'temperature_2m,precipitation,precipitation_probability,weather_code',
             daily: [
                 'weather_code',
                 'temperature_2m_max',
