@@ -537,7 +537,7 @@
         linePath.setAttribute('stroke', '#ffaa40');
         linePath.setAttribute('stroke-width', '3');
         linePath.setAttribute('stroke-linecap', 'round');
-        linePath.setAttribute('filter', 'drop-shadow(0 2px 8px rgba(255, 170, 64, 0.4))');
+        linePath.setAttribute('style', 'filter: drop-shadow(0 2px 8px rgba(255, 170, 64, 0.45));');
         svg.appendChild(linePath);
 
         // Interactive points on temperature line
@@ -668,25 +668,6 @@
             'change',
             updateHourlyVisibility
         );
-
-        const fullscreen = document.createElement('button');
-
-        fullscreen.id = 'fullscreenButton';
-        fullscreen.type = 'button';
-        fullscreen.className = 'fullscreen-button';
-        fullscreen.textContent = '⛶ Cinematic mode';
-        document.querySelector('.header-controls')?.appendChild(fullscreen);
-
-        fullscreen.addEventListener('click', toggleFullscreen);
-
-        document.addEventListener('fullscreenchange', () => {
-            const active = Boolean(document.fullscreenElement);
-
-            document.body.classList.toggle('cinematic-fullscreen', active);
-            fullscreen.textContent = active
-                ? '⛶ Exit cinematic mode'
-                : '⛶ Cinematic mode';
-        });
     }
 
     function renderFeatures(data, temperature, wind, rain, scene) {
@@ -833,6 +814,7 @@
         setText('no2Val', `${current.nitrogen_dioxide ? current.nitrogen_dioxide.toFixed(1) : '--'} µg/m³`);
         setText('so2Val', `${current.sulphur_dioxide ? current.sulphur_dioxide.toFixed(1) : '--'} µg/m³`);
         setText('coVal', `${current.carbon_monoxide ? current.carbon_monoxide.toFixed(1) : '--'} µg/m³`);
+        syncCinematicOverlay();
     }
 
     async function searchCity(name) {
@@ -965,6 +947,14 @@
 
         dom.dashboard.classList.remove('hidden');
         dom.empty.classList.add('hidden');
+
+        try {
+            if (city && city !== 'Your location') {
+                localStorage.setItem('last-weather-city', city);
+            }
+        } catch {
+            // LocalStorage might be restricted
+        }
     }
 
     function renderWeather(data, city, country, latitude, longitude) {
@@ -990,11 +980,15 @@
             current.weather_code,
             clouds
         );
-        dom.body.dataset.tempBand = rawTemp >= 24
+        dom.body.dataset.tempBand = rawTemp > 26
             ? 'hot'
-            : rawTemp <= 10
-                ? 'cold'
-                : 'mild';
+            : rawTemp > 20
+                ? 'warm'
+                : rawTemp > 12
+                    ? 'mild'
+                    : rawTemp > 2
+                        ? 'cold'
+                        : 'freezing';
 
         setText(
             'cityName',
@@ -1103,6 +1097,9 @@
         document.dispatchEvent(new CustomEvent('weatherchange', {
             detail: weatherDetail
         }));
+
+        syncCinematicOverlay();
+        loadMapWhenVisible();
     }
 
     function toggleUnits() {
@@ -1125,6 +1122,8 @@
                 currentPlace.lat,
                 currentPlace.lon
             );
+        } else {
+            syncCinematicOverlay();
         }
     }
 
@@ -1144,8 +1143,25 @@
         dom.location.disabled = true;
         dom.error.classList.remove('show');
 
+        let handled = false;
+        const safetyTimer = setTimeout(() => {
+            if (!handled) {
+                handled = true;
+                locationLocked = false;
+                dom.location.disabled = false;
+                if (fallbackToDefault && dom.dashboard.classList.contains('hidden')) {
+                    searchCity('London');
+                } else if (!fallbackToDefault) {
+                    showError('Location request timed out. Please try searching for your city.');
+                }
+            }
+        }, 4500);
+
         navigator.geolocation.getCurrentPosition(
             async position => {
+                if (handled) return;
+                handled = true;
+                clearTimeout(safetyTimer);
                 const { latitude, longitude } = position.coords;
 
                 try {
@@ -1172,6 +1188,9 @@
                 }
             },
             error => {
+                if (handled) return;
+                handled = true;
+                clearTimeout(safetyTimer);
                 locationLocked = false;
                 dom.location.disabled = false;
 
@@ -1187,22 +1206,129 @@
             },
             {
                 enableHighAccuracy: false,
-                timeout: 10000,
+                timeout: 4500,
                 maximumAge: 300000
             }
         );
     }
 
-    async function toggleFullscreen() {
-        try {
-            if (document.fullscreenElement) {
-                await document.exitFullscreen();
-            } else {
-                await document.documentElement.requestFullscreen();
-            }
-        } catch {
-            document.body.classList.toggle('cinematic-fullscreen');
+    function isCinematicActive() {
+        return document.body.classList.contains('cinematic-fullscreen');
+    }
+
+    function updateFullscreenButtonState(active) {
+        const btn = $('fullscreenButton');
+        if (btn) {
+            btn.textContent = active ? '⛶ Exit cinematic mode' : '⛶ Cinematic mode';
+            btn.setAttribute('aria-pressed', String(active));
         }
+        const overlay = $('cinematicModeOverlay');
+        if (overlay) {
+            overlay.setAttribute('aria-hidden', String(!active));
+        }
+    }
+
+    function syncCinematicOverlay() {
+        if (!lastWeatherData) return;
+        const { current, daily } = lastWeatherData;
+        if (!current) return;
+
+        const details = condition(current.weather_code);
+        const rawTemp = Number(current.temperature_2m);
+        const rawFeels = Number(current.apparent_temperature);
+        const rawWind = Number(current.wind_speed_10m || 0);
+        const rawRain = Number(current.precipitation || 0);
+        const scene = details[2];
+
+        const convertedTemp = Math.round(Units.temp(rawTemp));
+        const convertedFeels = Math.round(Units.temp(rawFeels));
+        const convertedWind = Math.round(Units.wind(rawWind));
+        const convertedRain = Units.rain(rawRain);
+
+        dom.body.dataset.tempBand = rawTemp > 26
+            ? 'hot'
+            : rawTemp > 20
+                ? 'warm'
+                : rawTemp > 12
+                    ? 'mild'
+                    : rawTemp > 2
+                        ? 'cold'
+                        : 'freezing';
+
+        setText('cinematicCityName', currentPlace.city || 'London');
+        setText('cinematicDate', new Date(current.time).toLocaleDateString('en-US', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        }));
+
+        setText('cinematicTempNum', `${convertedTemp}`);
+        setText('cinematicFeelsLike', `${convertedFeels}${Units.tempUnit()}`);
+
+        const isMetric = unitSystem === 'metric';
+        const btnC = $('cinematicUnitBtnC');
+        const btnF = $('cinematicUnitBtnF');
+        if (btnC && btnF) {
+            btnC.classList.toggle('active', isMetric);
+            btnF.classList.toggle('active', !isMetric);
+            btnC.setAttribute('aria-pressed', String(isMetric));
+            btnF.setAttribute('aria-pressed', String(!isMetric));
+        }
+
+        const iconEl = $('cinematicWeatherIcon');
+        if (iconEl) {
+            iconEl.innerHTML = weatherIcon(scene);
+        }
+
+        setText('cinematicDescription', details[0]);
+
+        setText('cinematicHumidity', `${Math.round(current.relative_humidity_2m || 0)}%`);
+        setText('cinematicWind', `${convertedWind} ${Units.windUnit()}`);
+        setText('cinematicRain', `${convertedRain > 0 ? convertedRain.toFixed(1) : '0'} ${Units.rainUnit()}`);
+
+        if (lastAirData?.current) {
+            const aqiVal = Math.round(lastAirData.current.us_aqi ?? ((lastAirData.current.european_aqi || 20) * 1.8));
+            const aqiLevel = aqiVal <= 50 ? 'Good' : aqiVal <= 100 ? 'Moderate' : aqiVal <= 150 ? 'Sensitive' : 'Unhealthy';
+            setText('cinematicAqi', `${aqiVal} · ${aqiLevel}`);
+        } else {
+            setText('cinematicAqi', 'Optimal');
+        }
+
+        const uvVal = daily?.uv_index_max?.[0] ?? current?.uv_index ?? 3;
+        setText('cinematicUv', `${Number(uvVal).toFixed(1)}`);
+    }
+
+    async function setCinematicMode(active) {
+        if (active) {
+            syncCinematicOverlay();
+            document.body.classList.add('cinematic-fullscreen');
+            updateFullscreenButtonState(true);
+
+            if (document.fullscreenEnabled && !document.fullscreenElement) {
+                try {
+                    await document.documentElement.requestFullscreen();
+                } catch {
+                    // Handled gracefully in iframe or restricted environments
+                }
+            }
+        } else {
+            document.body.classList.remove('cinematic-fullscreen');
+            updateFullscreenButtonState(false);
+
+            if (document.fullscreenElement) {
+                try {
+                    await document.exitFullscreen();
+                } catch {
+                    // Handled gracefully
+                }
+            }
+        }
+    }
+
+    async function toggleFullscreen() {
+        const nextState = !isCinematicActive();
+        await setCinematicMode(nextState);
     }
 
     function setTheme(theme) {
@@ -1272,13 +1398,61 @@
             );
     });
 
+    // Cinematic Mode Controls
+    $('fullscreenButton')?.addEventListener('click', toggleFullscreen);
+
+    $('cinematicExitButton')?.addEventListener('click', () => {
+        setCinematicMode(false);
+    });
+
+    // Creative unit switching interactions in cinematic mode
+    $('cinematicTemperature')?.addEventListener('click', toggleUnits);
+    $('cinematicTemperature')?.addEventListener('keydown', event => {
+        if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            toggleUnits();
+        }
+    });
+
+    $('cinematicUnitBtnC')?.addEventListener('click', event => {
+        event.stopPropagation();
+        if (unitSystem !== 'metric') {
+            toggleUnits();
+        }
+    });
+
+    $('cinematicUnitBtnF')?.addEventListener('click', event => {
+        event.stopPropagation();
+        if (unitSystem !== 'imperial') {
+            toggleUnits();
+        }
+    });
+
+    document.addEventListener('fullscreenchange', () => {
+        if (!document.fullscreenElement && isCinematicActive()) {
+            setCinematicMode(false);
+        }
+    });
+
     // Keyboard Shortcuts
     document.addEventListener('keydown', event => {
+        if (event.key === 'Escape') {
+            if (isCinematicActive()) {
+                event.preventDefault();
+                if (['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName)) {
+                    document.activeElement?.blur();
+                }
+                setCinematicMode(false);
+                return;
+            }
+            if (['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName)) {
+                dom.input.blur();
+                return;
+            }
+        }
+
         // Ignore shortcut if user is typing in an input
         if (['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName)) {
-            if (event.key === 'Escape') {
-                dom.input.blur();
-            }
             return;
         }
 
@@ -1349,10 +1523,14 @@
         }
     });
 
-    // Automatically trigger user location detection on load; smoothly falls back to London if denied or unavailable
-    if (navigator.geolocation) {
-        useLocation(true);
-    } else {
-        searchCity('London');
+    // Automatically load initial city or cached city immediately so the dashboard is vibrant and visible on load
+    const savedCity = localStorage.getItem('last-weather-city') || 'London';
+    searchCity(savedCity);
+
+    // If geolocation is available and user hasn't explicitly chosen a saved city, gracefully check location
+    if (navigator.geolocation && !localStorage.getItem('last-weather-city')) {
+        setTimeout(() => {
+            useLocation(false);
+        }, 1000);
     }
 })();

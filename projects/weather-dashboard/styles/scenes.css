@@ -234,18 +234,18 @@ body[data-daytime="night"] .sky-stars {
 .sky-cloud {
     position: absolute;
     z-index: 2;
-    width: 340px;
-    height: 90px;
+    width: 360px;
+    height: 100px;
     border-radius: 999px;
     opacity: 0;
-    background: radial-gradient(ellipse at 50% 30%, rgba(255, 255, 255, 0.95), rgba(240, 246, 255, 0.82) 65%, rgba(210, 225, 245, 0.6) 100%);
+    background: radial-gradient(ellipse at 50% 25%, rgba(255, 255, 255, 0.96), rgba(240, 246, 255, 0.86) 55%, rgba(200, 220, 245, 0.55) 100%);
     box-shadow: 
-        0 15px 35px rgba(160, 185, 220, 0.25),
-        inset 0 4px 12px rgba(255, 255, 255, 0.9),
-        inset 0 -8px 18px rgba(180, 205, 235, 0.4);
-    filter: blur(2px);
-    animation: cloudDrift 60s linear infinite;
-    transition: opacity 1s ease, filter 1s ease;
+        0 18px 45px rgba(140, 175, 220, 0.3),
+        inset 0 4px 14px rgba(255, 255, 255, 0.95),
+        inset 0 -10px 22px rgba(160, 195, 235, 0.45);
+    filter: blur(1.5px);
+    animation: cloudDrift 65s linear infinite;
+    transition: opacity 1s ease, filter 1s ease, background 1.2s ease;
     will-change: transform;
 }
 
@@ -254,24 +254,85 @@ body[data-daytime="night"] .sky-stars {
     position: absolute;
     content: "";
     border-radius: 50%;
-    background: radial-gradient(circle at 40% 35%, rgba(255, 255, 255, 0.98), rgba(245, 250, 255, 0.88) 60%, rgba(215, 230, 250, 0.65) 100%);
+    background: radial-gradient(circle at 38% 30%, rgba(255, 255, 255, 0.98), rgba(245, 250, 255, 0.9) 55%, rgba(210, 228, 250, 0.65) 100%);
     box-shadow: 
-        inset 0 3px 10px rgba(255, 255, 255, 0.95),
-        inset -4px -6px 14px rgba(180, 205, 235, 0.35);
+        inset 0 4px 12px rgba(255, 255, 255, 0.95),
+        inset -5px -8px 16px rgba(170, 200, 235, 0.38);
 }
 
 .sky-cloud::before {
-    width: 145px;
-    height: 145px;
+    width: 155px;
+    height: 155px;
     left: 45px;
-    bottom: 24px;
+    bottom: 28px;
 }
 
 .sky-cloud::after {
-    width: 115px;
-    height: 115px;
+    width: 125px;
+    height: 125px;
     right: 48px;
-    bottom: 16px;
+    bottom: 20px;
+}
+
+/* Micro-puffs and volumetric cloud detailing */
+.cloud-puff {
+    position: absolute;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.96), rgba(235, 245, 255, 0.8) 60%, rgba(195, 220, 248, 0.5) 100%);
+    box-shadow: inset 0 3px 8px rgba(255, 255, 255, 0.9);
+}
+
+.cloud-puff.puff-1 {
+    width: 95px;
+    height: 95px;
+    left: 135px;
+    bottom: 40px;
+}
+
+.cloud-puff.puff-2 {
+    width: 75px;
+    height: 75px;
+    left: 18px;
+    bottom: 12px;
+}
+
+.cloud-puff.puff-3 {
+    width: 82px;
+    height: 82px;
+    right: 22px;
+    bottom: 15px;
+}
+
+.cloud-shading {
+    position: absolute;
+    inset: auto 12px 0 12px;
+    height: 38px;
+    border-radius: 0 0 999px 999px;
+    background: linear-gradient(180deg, transparent, rgba(140, 175, 220, 0.22));
+    pointer-events: none;
+}
+
+/* Cloud storm & thunder atmosphere: dark, dense, turbulent billows */
+body[data-scene="thunder"] .sky-cloud {
+    background: radial-gradient(ellipse at 50% 25%, rgba(100, 120, 155, 0.88), rgba(65, 80, 110, 0.85) 60%, rgba(40, 50, 75, 0.8) 100%);
+    box-shadow: 
+        0 24px 60px rgba(0, 5, 20, 0.7),
+        inset 0 3px 8px rgba(180, 205, 245, 0.3),
+        inset 0 -12px 28px rgba(15, 20, 35, 0.8);
+    filter: blur(1.8px);
+}
+
+body[data-scene="thunder"] .sky-cloud::before,
+body[data-scene="thunder"] .sky-cloud::after,
+body[data-scene="thunder"] .cloud-puff {
+    background: radial-gradient(circle at 38% 30%, rgba(115, 135, 170, 0.9), rgba(70, 85, 118, 0.85) 60%, rgba(40, 52, 78, 0.78) 100%);
+    box-shadow: 
+        inset 0 3px 8px rgba(180, 210, 255, 0.25),
+        inset -5px -10px 20px rgba(15, 20, 35, 0.7);
+}
+
+body[data-scene="thunder"] .cloud-shading {
+    background: linear-gradient(180deg, transparent, rgba(10, 15, 30, 0.55));
 }
 
 body[data-daytime="night"] .sky-cloud {
@@ -283,32 +344,49 @@ body[data-daytime="night"] .sky-cloud {
 }
 
 body[data-daytime="night"] .sky-cloud::before,
-body[data-daytime="night"] .sky-cloud::after {
+body[data-daytime="night"] .sky-cloud::after,
+body[data-daytime="night"] .cloud-puff {
     background: radial-gradient(circle at 40% 35%, rgba(190, 215, 245, 0.42), rgba(120, 145, 185, 0.32) 60%, rgba(60, 80, 120, 0.22) 100%);
 }
 
 .cloud-one {
-    top: 15%;
-    left: 12%;
-    opacity: .6;
+    top: 12%;
+    left: 8%;
+    opacity: .65;
     animation-duration: 95s;
     transform: translate3d(calc(var(--parallax-x, 0px) * -0.6), calc(var(--parallax-y, 0px) * -0.4), 0);
 }
 
 .cloud-two {
-    top: 25%;
-    right: 8%;
-    opacity: .75;
-    animation-duration: 70s;
+    top: 22%;
+    right: 6%;
+    opacity: .78;
+    animation-duration: 72s;
     transform: translate3d(calc(var(--parallax-x, 0px) * -0.8), calc(var(--parallax-y, 0px) * -0.5), 0);
 }
 
 .cloud-three {
-    top: 42%;
-    left: 35%;
-    opacity: .9;
-    animation-duration: 45s;
+    top: 38%;
+    left: 32%;
+    opacity: .92;
+    animation-duration: 48s;
     transform: translate3d(calc(var(--parallax-x, 0px) * -1.2), calc(var(--parallax-y, 0px) * -0.8), 0);
+}
+
+.cloud-four {
+    top: 8%;
+    right: 28%;
+    opacity: .6;
+    animation-duration: 85s;
+    transform: translate3d(calc(var(--parallax-x, 0px) * -0.5), calc(var(--parallax-y, 0px) * -0.3), 0) scale(0.85);
+}
+
+.cloud-five {
+    top: 48%;
+    right: 18%;
+    opacity: .82;
+    animation-duration: 55s;
+    transform: translate3d(calc(var(--parallax-x, 0px) * -1.0), calc(var(--parallax-y, 0px) * -0.7), 0) scale(1.1);
 }
 
 /* Camera rumble for thunder strikes */
@@ -391,7 +469,7 @@ body[data-scene="sun"] .sky-gradient {
 #lightningFlash {
     position: fixed;
     inset: 0;
-    z-index: 5;
+    z-index: 1;
     pointer-events: none;
     opacity: 0;
     background: radial-gradient(circle at 50% 15%, rgba(255, 255, 255, 0.85), rgba(195, 230, 255, 0.45) 50%, rgba(120, 180, 255, 0.15) 80%, transparent 100%);
@@ -399,11 +477,11 @@ body[data-scene="sun"] .sky-gradient {
     transition: opacity 0.06s ease-out;
 }
 
-/* Dynamic High-Realism Branching Lightning Bolt */
+/* Dynamic High-Realism Branching Lightning Bolt - In Back, Thin & Detailed */
 #stormLightningBolt {
     position: fixed;
     inset: 0;
-    z-index: 6;
+    z-index: 1;
     pointer-events: none;
     width: 100vw;
     height: 100vh;
@@ -412,13 +490,13 @@ body[data-scene="sun"] .sky-gradient {
 #stormLightningBolt svg {
     width: 100%;
     height: 100%;
-    filter: drop-shadow(0 0 16px rgba(185, 225, 255, 0.95)) drop-shadow(0 0 38px rgba(110, 185, 255, 0.65));
+    filter: drop-shadow(0 0 10px rgba(185, 225, 255, 0.85)) drop-shadow(0 0 24px rgba(110, 185, 255, 0.45));
 }
 
 .lightning-glow {
     fill: none;
-    stroke: rgba(140, 205, 255, 0.55);
-    stroke-width: 7px;
+    stroke: rgba(140, 205, 255, 0.28);
+    stroke-width: 2.8px;
     stroke-linecap: round;
     stroke-linejoin: round;
 }
@@ -426,16 +504,24 @@ body[data-scene="sun"] .sky-gradient {
 .lightning-main {
     fill: none;
     stroke: #ffffff;
-    stroke-width: 2.8px;
+    stroke-width: 1.1px;
     stroke-linecap: round;
     stroke-linejoin: round;
-    filter: drop-shadow(0 0 8px #ffffff);
+    filter: drop-shadow(0 0 4px #ffffff) drop-shadow(0 0 8px rgba(200, 235, 255, 0.8));
 }
 
 .lightning-branch {
     fill: none;
-    stroke: rgba(210, 238, 255, 0.85);
-    stroke-width: 1.4px;
+    stroke: rgba(220, 245, 255, 0.85);
+    stroke-width: 0.65px;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.lightning-subbranch {
+    fill: none;
+    stroke: rgba(190, 230, 255, 0.65);
+    stroke-width: 0.38px;
     stroke-linecap: round;
     stroke-linejoin: round;
 }

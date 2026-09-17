@@ -30,9 +30,34 @@
         <div class="sky-aurora"></div>
         <div class="sky-sun"></div>
         <div class="sky-moon"></div>
-        <div class="sky-cloud cloud-one"></div>
-        <div class="sky-cloud cloud-two"></div>
-        <div class="sky-cloud cloud-three"></div>
+        <div class="sky-cloud cloud-one">
+            <span class="cloud-puff puff-1"></span>
+            <span class="cloud-puff puff-2"></span>
+            <span class="cloud-puff puff-3"></span>
+            <span class="cloud-shading"></span>
+        </div>
+        <div class="sky-cloud cloud-two">
+            <span class="cloud-puff puff-1"></span>
+            <span class="cloud-puff puff-2"></span>
+            <span class="cloud-puff puff-3"></span>
+            <span class="cloud-shading"></span>
+        </div>
+        <div class="sky-cloud cloud-three">
+            <span class="cloud-puff puff-1"></span>
+            <span class="cloud-puff puff-2"></span>
+            <span class="cloud-puff puff-3"></span>
+            <span class="cloud-shading"></span>
+        </div>
+        <div class="sky-cloud cloud-four">
+            <span class="cloud-puff puff-1"></span>
+            <span class="cloud-puff puff-2"></span>
+            <span class="cloud-shading"></span>
+        </div>
+        <div class="sky-cloud cloud-five">
+            <span class="cloud-puff puff-1"></span>
+            <span class="cloud-puff puff-2"></span>
+            <span class="cloud-shading"></span>
+        </div>
         <div class="sky-horizon"></div>
         <div class="sky-rays"></div>
         <div class="sky-lens-flare"></div>
@@ -44,6 +69,73 @@
     <canvas id="weatherCanvas" aria-hidden="true"></canvas>
     <div id="windEffect" aria-hidden="true"></div>
     <div id="lightningFlash" aria-hidden="true"></div>
+
+    <!-- Dedicated Cinematic Mode Screen -->
+    <section id="cinematicModeOverlay" class="cinematic-mode-overlay" aria-label="Cinematic Weather Display" aria-hidden="true">
+        <button id="cinematicExitButton" class="cinematic-floating-exit" type="button" title="Exit Cinematic Mode (Esc)" aria-label="Exit Cinematic Mode">
+            <span class="exit-icon" aria-hidden="true">✕</span>
+            <span class="exit-text">Exit</span>
+            <kbd class="cinematic-kbd">Esc</kbd>
+        </button>
+
+        <div class="cinematic-centerpiece">
+            <div class="cinematic-location">
+                <h1 id="cinematicCityName" class="cinematic-city">London</h1>
+                <p id="cinematicDate" class="cinematic-date">--</p>
+            </div>
+
+            <div class="cinematic-temp-cluster">
+                <div class="cinematic-temp-interactive-wrap">
+                    <div id="cinematicTemperature" class="cinematic-temperature" role="button" tabindex="0" title="Click to toggle °C / °F" aria-label="Toggle Temperature Units">
+                        <span id="cinematicTempNum" class="cinematic-temp-num">--</span>
+                        <span class="cinematic-temp-degree">°</span>
+                    </div>
+
+                    <div class="cinematic-unit-switch" id="cinematicUnitSwitcher" role="group" aria-label="Temperature unit selection">
+                        <button type="button" id="cinematicUnitBtnC" class="cinematic-unit-pill-btn active" data-unit="metric" title="Switch to Celsius">°C</button>
+                        <span class="cinematic-unit-pill-sep">/</span>
+                        <button type="button" id="cinematicUnitBtnF" class="cinematic-unit-pill-btn" data-unit="imperial" title="Switch to Fahrenheit">°F</button>
+                    </div>
+                </div>
+
+                <div class="cinematic-condition-cluster">
+                    <span id="cinematicWeatherIcon" class="cinematic-icon" aria-hidden="true">🌤️</span>
+                    <div class="cinematic-desc-wrap">
+                        <h2 id="cinematicDescription" class="cinematic-desc">Partly Cloudy</h2>
+                        <p class="cinematic-feels">Feels like <strong id="cinematicFeelsLike">--°</strong></p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="cinematic-stats-row" aria-label="Current Key Weather Indicators">
+                <div class="cinematic-stat">
+                    <span class="stat-icon" aria-hidden="true">💧</span>
+                    <span class="stat-label">Humidity</span>
+                    <strong id="cinematicHumidity" class="stat-val">--</strong>
+                </div>
+                <div class="cinematic-stat">
+                    <span class="stat-icon" aria-hidden="true">💨</span>
+                    <span class="stat-label">Wind</span>
+                    <strong id="cinematicWind" class="stat-val">--</strong>
+                </div>
+                <div class="cinematic-stat">
+                    <span class="stat-icon" aria-hidden="true">🌧️</span>
+                    <span class="stat-label">Precipitation</span>
+                    <strong id="cinematicRain" class="stat-val">--</strong>
+                </div>
+                <div class="cinematic-stat">
+                    <span class="stat-icon" aria-hidden="true">🍃</span>
+                    <span class="stat-label">Air Quality</span>
+                    <strong id="cinematicAqi" class="stat-val">--</strong>
+                </div>
+                <div class="cinematic-stat">
+                    <span class="stat-icon" aria-hidden="true">☀️</span>
+                    <span class="stat-label">UV Index</span>
+                    <strong id="cinematicUv" class="stat-val">--</strong>
+                </div>
+            </div>
+        </div>
+    </section>
 
     <main class="container">
         <nav class="weather-top-bar" aria-label="Portfolio Return Bridge">
@@ -69,6 +161,9 @@
                 </button>
                 <button id="themeToggle" class="theme-toggle" type="button" aria-pressed="false">
                     ☀️ Light mode
+                </button>
+                <button id="fullscreenButton" class="fullscreen-button" type="button" aria-pressed="false" title="Toggle Cinematic Mode">
+                    ⛶ Cinematic mode
                 </button>
             </div>
         </header>

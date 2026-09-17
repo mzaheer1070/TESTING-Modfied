@@ -427,6 +427,18 @@
         ctx.save();
         ctx.lineCap = 'round';
 
+        // Distant volumetric rain mist for heavy weather
+        if (currentScene === 'thunder' || currentScene === 'rain' || currentScene === 'shower') {
+            const mistHeight = Math.min(height * 0.35, 180);
+            const groundMist = ctx.createLinearGradient(0, height - mistHeight, 0, height);
+            const mistAlpha = currentScene === 'thunder' ? 0.14 : currentScene === 'shower' ? 0.09 : 0.07;
+            groundMist.addColorStop(0, 'rgba(190, 220, 255, 0)');
+            groundMist.addColorStop(0.6, `rgba(200, 230, 255, ${mistAlpha * 0.5})`);
+            groundMist.addColorStop(1, `rgba(215, 240, 255, ${mistAlpha})`);
+            ctx.fillStyle = groundMist;
+            ctx.fillRect(0, height - mistHeight, width, mistHeight);
+        }
+
         for (let i = 0; i < MAX_PARTICLES; i++) {
             const p = particles[i];
             if (!p.active) continue;
@@ -435,7 +447,7 @@
             const renderX = p.x + currentParallaxX * (1 - p.z) * 15;
             const renderY = p.y + currentParallaxY * (1 - p.z) * 10;
 
-            const angle = Math.min(windSpeed / 55, 1.3);
+            const angle = Math.min(windSpeed / 50, 1.25) + Math.sin(p.phase) * 0.04;
             const dx = angle * p.length;
             const dy = p.length;
 
@@ -443,28 +455,44 @@
             ctx.moveTo(renderX, renderY);
             ctx.lineTo(renderX + dx, renderY + dy);
 
-            // Shading: Foreground drops have specular highlight, distant drops are translucent
+            // Realistic optical gradient streak: tail is soft/translucent, head has specular water glint
+            const grad = ctx.createLinearGradient(renderX, renderY, renderX + dx, renderY + dy);
+            
             if (currentScene === 'light_drizzle') {
-                ctx.strokeStyle = `rgba(180, 220, 255, ${p.alpha * 0.65})`;
-                ctx.lineWidth = Math.max(0.5, p.size * 0.8);
+                grad.addColorStop(0, 'rgba(180, 220, 255, 0)');
+                grad.addColorStop(0.7, `rgba(195, 230, 255, ${p.alpha * 0.35})`);
+                grad.addColorStop(1, `rgba(225, 245, 255, ${p.alpha * 0.7})`);
+                ctx.strokeStyle = grad;
+                ctx.lineWidth = Math.max(0.45, p.size * 0.75);
             } else if (currentScene === 'drizzle') {
-                ctx.strokeStyle = `rgba(195, 230, 255, ${p.alpha * 0.75})`;
-                ctx.lineWidth = Math.max(0.65, p.size * 0.9);
-            } else if (p.z > 0.75) {
-                ctx.strokeStyle = currentScene === 'thunder'
-                    ? `rgba(240, 250, 255, ${p.alpha})`
-                    : currentScene === 'shower'
-                    ? `rgba(225, 245, 255, ${p.alpha})`
-                    : `rgba(215, 238, 255, ${p.alpha})`;
-                ctx.lineWidth = p.size;
-            } else if (p.z > 0.45) {
-                ctx.strokeStyle = currentScene === 'thunder'
-                    ? `rgba(200, 230, 255, ${p.alpha * 0.85})`
-                    : `rgba(185, 222, 255, ${p.alpha * 0.8})`;
-                ctx.lineWidth = p.size * 0.85;
+                grad.addColorStop(0, 'rgba(190, 225, 255, 0)');
+                grad.addColorStop(0.65, `rgba(205, 235, 255, ${p.alpha * 0.4})`);
+                grad.addColorStop(1, `rgba(235, 250, 255, ${p.alpha * 0.85})`);
+                ctx.strokeStyle = grad;
+                ctx.lineWidth = Math.max(0.55, p.size * 0.85);
+            } else if (p.z > 0.7) {
+                // Foreground crisp drops with bright leading droplet glint
+                grad.addColorStop(0, 'rgba(170, 215, 255, 0)');
+                grad.addColorStop(0.5, `rgba(210, 238, 255, ${p.alpha * 0.5})`);
+                grad.addColorStop(1, currentScene === 'thunder'
+                    ? `rgba(255, 255, 255, ${Math.min(1, p.alpha * 1.15)})`
+                    : `rgba(245, 252, 255, ${p.alpha})`);
+                ctx.strokeStyle = grad;
+                ctx.lineWidth = Math.max(0.7, p.size * 0.95);
+            } else if (p.z > 0.35) {
+                // Midground drops
+                grad.addColorStop(0, 'rgba(160, 205, 250, 0)');
+                grad.addColorStop(0.6, `rgba(190, 225, 255, ${p.alpha * 0.4})`);
+                grad.addColorStop(1, `rgba(220, 242, 255, ${p.alpha * 0.8})`);
+                ctx.strokeStyle = grad;
+                ctx.lineWidth = Math.max(0.5, p.size * 0.8);
             } else {
-                ctx.strokeStyle = `rgba(150, 195, 240, ${p.alpha * 0.5})`;
-                ctx.lineWidth = Math.max(0.6, p.size * 0.7);
+                // Distant drops: delicate atmospheric mist trails
+                grad.addColorStop(0, 'rgba(140, 190, 240, 0)');
+                grad.addColorStop(0.8, `rgba(175, 215, 250, ${p.alpha * 0.35})`);
+                grad.addColorStop(1, `rgba(205, 230, 255, ${p.alpha * 0.55})`);
+                ctx.strokeStyle = grad;
+                ctx.lineWidth = Math.max(0.4, p.size * 0.6);
             }
 
             ctx.stroke();
@@ -657,31 +685,31 @@
         document.body.style.setProperty('--parallax-y', `${(targetParallaxY * 12).toFixed(1)}px`);
     }
 
-    // High-Realism Branching Lightning
-    function triggerRealisticLightning() {
+    // High-Realism Branching Lightning (Thin, Detailed, Frequent, Full Sky Coverage)
+    function triggerRealisticLightning(isDoubleStrike = false) {
         if (currentScene !== 'thunder') return;
 
-        // Sky flash
+        // Sky flash illumination
         ambientFlash = 1.0;
 
         // Strobe screen flash element
         const flashEl = document.getElementById('lightningFlash');
         if (flashEl) {
-            flashEl.style.opacity = '0.92';
+            flashEl.style.opacity = isDoubleStrike ? '0.7' : '0.95';
             setTimeout(() => {
-                flashEl.style.opacity = '0.18';
+                flashEl.style.opacity = '0.15';
                 setTimeout(() => {
-                    flashEl.style.opacity = '0.78';
+                    flashEl.style.opacity = isDoubleStrike ? '0.55' : '0.85';
                     setTimeout(() => {
                         flashEl.style.opacity = '0';
-                    }, 140);
-                }, 70);
-            }, 90);
+                    }, 120);
+                }, 60);
+            }, 80);
         }
 
         // Screen micro-shake
         document.body.classList.add('camera-rumble');
-        setTimeout(() => document.body.classList.remove('camera-rumble'), 240);
+        setTimeout(() => document.body.classList.remove('camera-rumble'), 220);
 
         if (activeLightningBolt) {
             activeLightningBolt.remove();
@@ -692,10 +720,47 @@
         bolt.id = 'stormLightningBolt';
         bolt.setAttribute('aria-hidden', 'true');
 
-        const startX = 20 + Math.random() * 60;
-        const mainPath = generateFractalBolt(startX, 0, startX + (Math.random() - 0.5) * 15, 100, 5, 8);
-        const branchPath1 = generateFractalBolt(startX - 5, 38, startX - 25, 65, 3, 5);
-        const branchPath2 = generateFractalBolt(startX + 8, 52, startX + 28, 75, 3, 5);
+        // Dynamic random origin anywhere across the top of the sky (not fixed)
+        const startX = 3 + Math.random() * 94;
+        const drift = (Math.random() - 0.5) * 40;
+        const endX = Math.max(2, Math.min(98, startX + drift));
+        const endY = 70 + Math.random() * 30;
+
+        // Highly detailed fractal paths with fine micro-steps
+        const mainPath = generateFractalBolt(startX, 0, endX, endY, 6, 14);
+
+        // Multiple delicate branches shooting off main bolt at organic angles
+        const midY1 = 26 + Math.random() * 12;
+        const midX1 = startX + (drift * 0.3) + (Math.random() - 0.5) * 8;
+        const branchDir1 = Math.random() > 0.5 ? 1 : -1;
+        const branchEnd1X = Math.max(2, Math.min(98, midX1 + branchDir1 * (12 + Math.random() * 18)));
+        const branchPath1 = generateFractalBolt(midX1, midY1, branchEnd1X, midY1 + 18 + Math.random() * 16, 4, 8);
+        const subBranch1 = generateFractalBolt(
+            midX1 + (branchEnd1X - midX1) * 0.5,
+            midY1 + 9,
+            Math.max(2, Math.min(98, midX1 + branchDir1 * (22 + Math.random() * 10))),
+            midY1 + 28,
+            3,
+            5
+        );
+
+        const midY2 = 48 + Math.random() * 14;
+        const midX2 = startX + (drift * 0.55) + (Math.random() - 0.5) * 8;
+        const branchDir2 = -branchDir1;
+        const branchEnd2X = Math.max(2, Math.min(98, midX2 + branchDir2 * (10 + Math.random() * 20)));
+        const branchPath2 = generateFractalBolt(midX2, midY2, branchEnd2X, midY2 + 16 + Math.random() * 18, 4, 8);
+        const subBranch2 = generateFractalBolt(
+            midX2 + (branchEnd2X - midX2) * 0.5,
+            midY2 + 8,
+            Math.max(2, Math.min(98, midX2 + branchDir2 * (20 + Math.random() * 12))),
+            midY2 + 26,
+            3,
+            5
+        );
+
+        const midY3 = 68 + Math.random() * 10;
+        const midX3 = startX + (drift * 0.75) + (Math.random() - 0.5) * 6;
+        const branchPath3 = generateFractalBolt(midX3, midY3, Math.max(2, Math.min(98, midX3 + (Math.random() - 0.5) * 22)), midY3 + 12 + Math.random() * 12, 3, 6);
 
         bolt.innerHTML = `
             <svg viewBox="0 0 100 100" preserveAspectRatio="none">
@@ -703,26 +768,45 @@
                 <path class="lightning-main" d="${mainPath}"></path>
                 <path class="lightning-branch" d="${branchPath1}"></path>
                 <path class="lightning-branch" d="${branchPath2}"></path>
+                <path class="lightning-branch" d="${branchPath3}"></path>
+                <path class="lightning-subbranch" d="${subBranch1}"></path>
+                <path class="lightning-subbranch" d="${subBranch2}"></path>
             </svg>
         `;
 
-        document.body.appendChild(bolt);
+        // Place in background inside #cinematicSky behind UI and cards
+        const skyContainer = document.getElementById('cinematicSky');
+        if (skyContainer) {
+            skyContainer.appendChild(bolt);
+        } else {
+            document.body.appendChild(bolt);
+        }
         activeLightningBolt = bolt;
 
         bolt.animate([
             { opacity: 0 },
-            { opacity: 1, offset: 0.08 },
-            { opacity: 0.25, offset: 0.2 },
-            { opacity: 0.95, offset: 0.35 },
-            { opacity: 0.15, offset: 0.5 },
+            { opacity: 1, offset: 0.06 },
+            { opacity: 0.2, offset: 0.18 },
+            { opacity: 0.95, offset: 0.32 },
+            { opacity: 0.12, offset: 0.48 },
+            { opacity: 0.8, offset: 0.62 },
             { opacity: 0, offset: 1 }
         ], {
-            duration: 750,
+            duration: 650,
             easing: 'ease-out'
         }).onfinish = () => {
             bolt.remove();
             if (activeLightningBolt === bolt) activeLightningBolt = null;
         };
+
+        // Realistic double-strike possibility
+        if (!isDoubleStrike && Math.random() < 0.36) {
+            setTimeout(() => {
+                if (currentScene === 'thunder') {
+                    triggerRealisticLightning(true);
+                }
+            }, 140 + Math.random() * 100);
+        }
     }
 
     function generateFractalBolt(x1, y1, x2, y2, depth, maxOffset) {
@@ -731,23 +815,41 @@
         }
 
         const midX = (x1 + x2) / 2 + (Math.random() - 0.5) * maxOffset;
-        const midY = (y1 + y2) / 2 + (Math.random() - 0.5) * (maxOffset * 0.4);
+        const midY = (y1 + y2) / 2 + (Math.random() - 0.5) * (maxOffset * 0.45);
 
-        const left = generateFractalBolt(x1, y1, midX, midY, depth - 1, maxOffset * 0.6);
-        const right = generateFractalBolt(midX, midY, x2, y2, depth - 1, maxOffset * 0.6);
+        const left = generateFractalBolt(x1, y1, midX, midY, depth - 1, maxOffset * 0.62);
+        const right = generateFractalBolt(midX, midY, x2, y2, depth - 1, maxOffset * 0.62);
 
         return `${left} ${right.replace(/^M[^ ]+ [^ ]+ /, '')}`;
     }
 
     function startStormLightning() {
-        clearInterval(stormTimer);
+        if (stormTimer) {
+            clearTimeout(stormTimer);
+            stormTimer = null;
+        }
         if (currentScene !== 'thunder') return;
 
-        stormTimer = setInterval(() => {
-            if (Math.random() > 0.25) {
+        // Immediate first strike for fast responsive atmospheric impact
+        setTimeout(() => {
+            if (currentScene === 'thunder') {
                 triggerRealisticLightning();
             }
-        }, 8000 + Math.random() * 9000);
+        }, 400);
+
+        function scheduleNextStrike() {
+            if (currentScene !== 'thunder') return;
+            // More occurring: every 1.8 to 4.2 seconds
+            const nextDelay = 1800 + Math.random() * 2400;
+            stormTimer = setTimeout(() => {
+                if (currentScene === 'thunder') {
+                    triggerRealisticLightning();
+                    scheduleNextStrike();
+                }
+            }, nextDelay);
+        }
+
+        scheduleNextStrike();
     }
 
     // Dynamic Cloud Details & 3D Shading
