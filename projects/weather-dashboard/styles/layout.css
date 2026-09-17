@@ -40,16 +40,16 @@
     font-size: 1.1rem;
 }
 
-.header-controls,
+.header-controls {
+    display: flex;
+    justify-content: center;
+    margin-top: 18px;
+}
+
 .search-box {
     display: flex;
     justify-content: center;
     gap: 10px;
-    flex-wrap: wrap;
-}
-
-.header-controls {
-    margin-top: 20px;
 }
 
 .search-section {

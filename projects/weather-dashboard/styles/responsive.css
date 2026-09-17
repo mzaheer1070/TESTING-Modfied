@@ -23,17 +23,31 @@
     }
 }
 
+@media (max-width: 540px) {
+    .unified-toolbar {
+        padding: 3px 4px;
+        gap: 2px;
+        margin: 16px auto 22px auto;
+    }
+
+    .toolbar-btn {
+        padding: 6px 10px;
+        font-size: 0.78rem;
+        gap: 4px;
+    }
+
+    .toolbar-icon {
+        font-size: 0.88rem;
+    }
+}
+
 @media (max-width: 500px) {
     .search-box {
         gap: 8px;
     }
 
-    .search-symbol {
-        padding-left: 14px;
-    }
-
     .search-input {
-        padding-inline: 8px;
+        padding: 13px 12px 13px 18px;
         font-size: .95rem;
     }
 

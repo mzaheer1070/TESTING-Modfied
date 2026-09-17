@@ -1219,7 +1219,9 @@
     function updateFullscreenButtonState(active) {
         const btn = $('fullscreenButton');
         if (btn) {
-            btn.textContent = active ? '⛶ Exit cinematic mode' : '⛶ Cinematic mode';
+            btn.innerHTML = active
+                ? '<span class="toolbar-icon">⛶</span><span class="toolbar-label" id="fullscreenText">Exit</span>'
+                : '<span class="toolbar-icon">⛶</span><span class="toolbar-label" id="fullscreenText">Cinema</span>';
             btn.setAttribute('aria-pressed', String(active));
         }
         const overlay = $('cinematicModeOverlay');
@@ -1335,9 +1337,9 @@
         dom.body.dataset.theme = theme;
 
         const light = theme === 'light';
-        dom.theme.textContent = light
-            ? '🌙 Dark mode'
-            : '☀️ Light mode';
+        dom.theme.innerHTML = light
+            ? '<span class="toolbar-icon">🌙</span><span class="toolbar-label" id="themeText">Dark</span>'
+            : '<span class="toolbar-icon">☀️</span><span class="toolbar-label" id="themeText">Light</span>';
         dom.theme.setAttribute('aria-pressed', String(light));
     }
 

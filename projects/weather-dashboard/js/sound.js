@@ -352,7 +352,7 @@
         playing = true;
         playBackground(currentScene);
 
-        button.textContent = '🔊 Ambient sound on';
+        button.innerHTML = '<span class="toolbar-icon">🔊</span><span class="toolbar-label" id="soundText">Sound On</span>';
         button.setAttribute('aria-pressed', 'true');
         document.body.classList.add('sound-active');
     }
@@ -362,7 +362,7 @@
         stopTimers();
         stopAllSounds();
 
-        button.textContent = '🔇 Ambient sound off';
+        button.innerHTML = '<span class="toolbar-icon">🔇</span><span class="toolbar-label" id="soundText">Sound Off</span>';
         button.setAttribute('aria-pressed', 'false');
         document.body.classList.remove('sound-active');
     }
@@ -373,7 +373,7 @@
         } else {
             startSound().catch(error => {
                 console.error('Sound could not start:', error);
-                button.textContent = '🔇 Sound unavailable';
+                button.innerHTML = '<span class="toolbar-icon">🔇</span><span class="toolbar-label" id="soundText">No Audio</span>';
             });
         }
     });

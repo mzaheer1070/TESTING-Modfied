@@ -152,18 +152,25 @@
             <h1>Weather Dashboard <span>Pro</span></h1>
             <p class="subtitle">Real-time weather with cinematic effects</p>
 
-            <div class="header-controls">
-                <button id="unitToggle" class="unit-toggle" type="button" aria-label="Toggle Temperature Units" title="Toggle °C / °F">
-                    🌡️ <span id="unitToggleLabel">°C</span>
+            <div class="header-controls unified-toolbar" role="toolbar" aria-label="Dashboard controls">
+                <button id="unitToggle" class="toolbar-btn unit-toggle" type="button" aria-label="Toggle Temperature Units" title="Toggle °C / °F">
+                    <span class="toolbar-icon">🌡️</span>
+                    <span id="unitToggleLabel" class="toolbar-label">°C</span>
                 </button>
-                <button id="soundToggle" class="sound-toggle" type="button" aria-pressed="false">
-                    🔇 Ambient sound off
+                <div class="toolbar-divider" aria-hidden="true"></div>
+                <button id="soundToggle" class="toolbar-btn sound-toggle" type="button" aria-pressed="false" title="Toggle ambient weather sound">
+                    <span class="toolbar-icon" id="soundIcon">🔇</span>
+                    <span class="toolbar-label" id="soundText">Sound Off</span>
                 </button>
-                <button id="themeToggle" class="theme-toggle" type="button" aria-pressed="false">
-                    ☀️ Light mode
+                <div class="toolbar-divider" aria-hidden="true"></div>
+                <button id="themeToggle" class="toolbar-btn theme-toggle" type="button" aria-pressed="false" title="Toggle light/dark theme">
+                    <span class="toolbar-icon" id="themeIcon">☀️</span>
+                    <span class="toolbar-label" id="themeText">Light</span>
                 </button>
-                <button id="fullscreenButton" class="fullscreen-button" type="button" aria-pressed="false" title="Toggle Cinematic Mode">
-                    ⛶ Cinematic mode
+                <div class="toolbar-divider" aria-hidden="true"></div>
+                <button id="fullscreenButton" class="toolbar-btn fullscreen-button" type="button" aria-pressed="false" title="Toggle Cinematic Mode">
+                    <span class="toolbar-icon">⛶</span>
+                    <span class="toolbar-label" id="fullscreenText">Cinema</span>
                 </button>
             </div>
         </header>
@@ -172,7 +179,6 @@
             <div class="search-box">
                 <label class="sr-only" for="searchInput">Search for a city</label>
                 <div class="search-field">
-                    <span class="search-symbol" aria-hidden="true">⌕</span>
                     <input id="searchInput" class="search-input" type="search"
                         placeholder="Search city, country or region (Press '/' to search)" autocomplete="off"
                         aria-autocomplete="list" aria-controls="citySuggestions"
