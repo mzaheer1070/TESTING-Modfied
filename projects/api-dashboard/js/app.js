@@ -142,9 +142,72 @@ async function scanApis() {
     refreshButton.textContent = "Scan again";
 }
 
+const customForm = document.getElementById("custom-probe-form");
+const probeMethod = document.getElementById("probe-method");
+const probeUrl = document.getElementById("probe-url");
+const btnProbe = document.getElementById("btn-probe");
+const clearLogBtn = document.getElementById("clear-log");
+const autoRefreshSelect = document.getElementById("auto-refresh-select");
+
 refreshButton.addEventListener("click", () => {
     scanApis();
 });
+
+if (clearLogBtn) {
+    clearLogBtn.addEventListener("click", () => {
+        requestHistory = [];
+        renderLog(requestHistory);
+    });
+}
+
+if (customForm) {
+    customForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const url = probeUrl.value.trim();
+        const method = probeMethod.value;
+        if (!url) return;
+
+        btnProbe.disabled = true;
+        btnProbe.textContent = "Probing…";
+        if (statusLine) {
+            statusLine.textContent = `Probing custom endpoint ${method} ${url}…`;
+            statusLine.dataset.type = "info";
+        }
+
+        const result = await runProbe({ method, url });
+        requestHistory.unshift(result);
+        requestHistory = requestHistory.slice(0, 20);
+        renderLog(requestHistory);
+
+        if (statusLine) {
+            statusLine.textContent = `Probed ${method} ${shortUrl(url)}: HTTP ${result.status || 'ERR'} (${result.latency}ms)`;
+            statusLine.dataset.type = result.ok ? "success" : "warn";
+        }
+
+        btnProbe.disabled = false;
+        btnProbe.textContent = "Test Endpoint";
+    });
+}
+
+document.querySelectorAll(".preset-chip").forEach((chip) => {
+    chip.addEventListener("click", () => {
+        const url = chip.dataset.presetUrl;
+        if (url && probeUrl) {
+            probeUrl.value = url;
+            if (customForm) customForm.dispatchEvent(new Event("submit"));
+        }
+    });
+});
+
+if (autoRefreshSelect) {
+    autoRefreshSelect.addEventListener("change", () => {
+        if (autoRefreshTimer) clearInterval(autoRefreshTimer);
+        const interval = parseInt(autoRefreshSelect.value, 10);
+        if (interval > 0) {
+            autoRefreshTimer = window.setInterval(scanApis, interval);
+        }
+    });
+}
 
 scanApis();
 autoRefreshTimer = window.setInterval(scanApis, 30000);

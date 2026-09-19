@@ -11,41 +11,120 @@
 
 .todo-form {
     display: grid;
-    grid-template-columns: 1fr auto;
+    grid-template-columns: 1fr auto auto;
     gap: 12px;
     margin-bottom: 20px;
 }
 
-.todo-form input {
+.todo-priority-select {
+    background: var(--surface-strong);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 0 14px;
+    font-size: 0.9rem;
+    font-weight: 600;
     height: 48px;
-    font-size: 1rem;
+    cursor: pointer;
 }
 
-.todo-form button {
-    height: 48px;
-    padding: 0 26px;
+.todo-priority-select:focus {
+    outline: none;
+    border-color: var(--primary);
 }
 
 .filter-row {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
+    justify-content: space-between;
     gap: 10px;
     margin-bottom: 20px;
     padding-bottom: 14px;
     border-bottom: 1px solid var(--border);
 }
 
+.filter-group {
+    display: flex;
+    gap: 8px;
+}
+
 .filter-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
     background: var(--surface-strong);
     border: 1px solid var(--border);
     color: var(--muted);
-    padding: 8px 18px;
+    padding: 6px 14px;
     border-radius: 9999px;
-    font-size: 0.85rem;
+    font-size: 0.82rem;
     font-weight: 600;
     transition: all 0.2s ease;
     box-shadow: none;
+    cursor: pointer;
+}
+
+.filter-btn .count-badge {
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 9999px;
+    padding: 1px 6px;
+    font-size: 0.75rem;
+}
+
+.filter-btn.is-active .count-badge {
+    background: rgba(0, 0, 0, 0.2);
+    color: #000;
+}
+
+.clear-done-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 6px 14px;
+    border-radius: 9999px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.clear-done-btn:hover {
+    color: #ef4444;
+    border-color: rgba(239, 68, 68, 0.4);
+}
+
+.priority-tag {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 2px 8px;
+    border-radius: 4px;
+    flex-shrink: 0;
+}
+
+.priority-tag.urgent {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.priority-tag.high {
+    background: rgba(245, 158, 11, 0.15);
+    color: #f59e0b;
+    border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.priority-tag.normal {
+    background: rgba(16, 185, 129, 0.12);
+    color: var(--primary);
+    border: 1px solid rgba(16, 185, 129, 0.25);
+}
+
+@media (max-width: 540px) {
+    .todo-form {
+        grid-template-columns: 1fr;
+    }
 }
 
 .filter-btn:hover {

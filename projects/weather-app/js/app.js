@@ -74,6 +74,30 @@ async function fetchWeather(place) {
     return data.current;
 }
 
+const weatherIcons = {
+    0: "☀️",
+    1: "🌤️",
+    2: "⛅",
+    3: "☁️",
+    45: "🌫️",
+    48: "🌫️",
+    51: "🌦️",
+    53: "🌧️",
+    55: "🌧️",
+    61: "🌧️",
+    63: "🌧️",
+    65: "🌧️",
+    71: "🌨️",
+    73: "❄️",
+    75: "❄️",
+    80: "🌦️",
+    95: "⛈️"
+};
+
+const conditionIcon = document.getElementById("condition-icon");
+const geoBtn = document.getElementById("geo-btn");
+const cityInput = document.getElementById("city-input");
+
 function renderWeather(place, current) {
     const label = [place.name, place.admin1, place.country].filter(Boolean).join(", ");
     const code = current.weather_code;
@@ -82,10 +106,16 @@ function renderWeather(place, current) {
     cityName.textContent = label;
     tempEl.textContent = `${Math.round(current.temperature_2m)}${unitLabel}`;
     conditionEl.textContent = weatherLabels[code] || "Current conditions";
+    if (conditionIcon) {
+        conditionIcon.textContent = weatherIcons[code] || "🌡️";
+    }
     humidityEl.textContent = `${current.relative_humidity_2m}%`;
     windEl.textContent = `${Math.round(current.wind_speed_10m)} km/h`;
     result.hidden = false;
     setStatus("Live data from Open-Meteo.", "success");
+    try {
+        localStorage.setItem("zaheer-weather-last-city", place.name);
+    } catch (e) {}
 }
 
 async function showWeather(city) {
@@ -104,6 +134,52 @@ async function showWeather(city) {
         setLoading(false);
     }
 }
+
+async function showWeatherByCoords(lat, lon, labelName = "Your Location") {
+    setLoading(true);
+    setStatus("Looking up coordinates…", "info");
+    result.hidden = true;
+
+    try {
+        const place = { name: labelName, latitude: lat, longitude: lon };
+        lastPlace = place;
+        const current = await fetchWeather(place);
+        renderWeather(place, current);
+    } catch (error) {
+        setStatus(error.message || "Could not fetch weather for coordinates.", "error");
+    } finally {
+        setLoading(false);
+    }
+}
+
+if (geoBtn) {
+    geoBtn.addEventListener("click", () => {
+        if (!navigator.geolocation) {
+            setStatus("Geolocation is not supported by your browser.", "error");
+            return;
+        }
+        setStatus("Locating you…", "info");
+        navigator.geolocation.getCurrentPosition(
+            (pos) => {
+                showWeatherByCoords(pos.coords.latitude, pos.coords.longitude, "Current Location");
+            },
+            (err) => {
+                setStatus("Could not get location. Please search by city name.", "error");
+            },
+            { timeout: 8000 }
+        );
+    });
+}
+
+document.querySelectorAll(".city-chip").forEach((chip) => {
+    chip.addEventListener("click", () => {
+        const city = chip.dataset.city;
+        if (city) {
+            if (cityInput) cityInput.value = city;
+            showWeather(city);
+        }
+    });
+});
 
 document.querySelectorAll(".unit-btn").forEach((button) => {
     button.addEventListener("click", async () => {
@@ -128,9 +204,18 @@ document.querySelectorAll(".unit-btn").forEach((button) => {
 
 form.addEventListener("submit", (event) => {
     event.preventDefault();
-    const city = document.getElementById("city-input").value.trim();
+    const city = cityInput ? cityInput.value.trim() : "";
     if (!city) return;
     showWeather(city);
 });
 
-showWeather("Karachi");
+const initialCity = (() => {
+    try {
+        return localStorage.getItem("zaheer-weather-last-city") || "Karachi";
+    } catch (e) {
+        return "Karachi";
+    }
+})();
+
+if (cityInput) cityInput.value = initialCity;
+showWeather(initialCity);

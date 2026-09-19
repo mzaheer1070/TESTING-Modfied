@@ -845,6 +845,23 @@ h3 {
     white-space: nowrap;
 }
 
+.btn-chevron {
+    display: inline-block;
+    flex-shrink: 0;
+    vertical-align: middle;
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn:hover .btn-chevron,
+.btn-launch:hover .btn-chevron,
+.btn-launch-sm:hover .btn-chevron {
+    transform: translateX(3px);
+}
+
+.btn:hover .btn-chevron.btn-chevron--left {
+    transform: translateX(-3px);
+}
+
 .btn:active {
     transform: scale(0.96);
 }
@@ -1102,6 +1119,29 @@ h3 {
     justify-content: center;
     gap: 8px;
     border-radius: var(--radius-full);
+    background: var(--primary);
+    color: #000000 !important;
+}
+
+.btn-launch-sm span,
+.btn-launch span,
+.home-project-card .card-actions-row .btn span,
+.home-project-card a.btn-launch-sm > span {
+    color: #000000 !important;
+    font-weight: 800 !important;
+    font-size: 0.86rem;
+    letter-spacing: 0.05em;
+    display: inline-block;
+    vertical-align: middle;
+    visibility: visible !important;
+    opacity: 1 !important;
+    line-height: 1;
+}
+
+.btn-launch-sm svg,
+.home-project-card a.btn-launch-sm svg {
+    color: #000000 !important;
+    stroke: #000000 !important;
 }
 
 .card-toggle {
@@ -1150,7 +1190,8 @@ h3 {
     font-weight: 700;
 }
 
-.home-project-card span {
+.home-project-card > span,
+.home-project-card-desc {
     font-size: 0.9rem;
     color: var(--text-muted);
 }
@@ -1889,11 +1930,23 @@ h3 {
     transition: all var(--transition);
 }
 
+.project-directory-link .nav-chevron {
+    margin-left: auto;
+    flex-shrink: 0;
+    color: var(--text-muted);
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), color 0.2s ease;
+}
+
 .project-directory-link:hover {
     background: var(--primary-subtle);
     color: var(--primary);
     border-color: var(--primary);
     transform: translateX(4px);
+}
+
+.project-directory-link:hover .nav-chevron {
+    transform: translateX(3px);
+    color: var(--primary);
 }
 
 /* ==========================================================================

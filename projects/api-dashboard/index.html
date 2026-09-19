@@ -25,8 +25,14 @@
 </header>
 
 <header class="site-bar">
-    <a class="back-link" href="../../projects.html" data-root-href="projects.html">← All projects</a>
-    <a class="back-link" href="../../index.html" data-root-href="index.html">Portfolio home</a>
+    <a class="back-link" href="../../projects.html" data-root-href="projects.html">
+        <svg class="nav-chevron nav-chevron--left" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"></polyline></svg>
+        <span>All projects</span>
+    </a>
+    <a class="back-link" href="../../index.html" data-root-href="index.html">
+        <span>Portfolio home</span>
+        <svg class="nav-chevron nav-chevron--right" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"></polyline></svg>
+    </a>
 </header>
 
 <main class="app-wrap app-wrap--wide">
@@ -36,10 +42,40 @@
 
     <section class="stats-grid" id="stats-grid" aria-live="polite"></section>
 
+    <!-- Custom Endpoint Prober -->
+    <section class="probe-custom-card">
+        <h2>Live Endpoint Prober</h2>
+        <form class="custom-probe-form" id="custom-probe-form">
+            <select id="probe-method" aria-label="HTTP Method">
+                <option value="GET">GET</option>
+                <option value="POST">POST</option>
+                <option value="HEAD">HEAD</option>
+            </select>
+            <input type="url" id="probe-url" placeholder="https://api.github.com/users/octocat" required aria-label="Endpoint URL">
+            <button type="submit" id="btn-probe">Test Endpoint</button>
+        </form>
+        <div class="presets-row">
+            <span class="presets-label">Quick Presets:</span>
+            <button type="button" class="preset-chip" data-preset-url="https://api.github.com/users/octocat">GitHub User API</button>
+            <button type="button" class="preset-chip" data-preset-url="https://api.open-meteo.com/v1/forecast?latitude=40.71&longitude=-74.01&current=temperature_2m">Open-Meteo Weather</button>
+            <button type="button" class="preset-chip" data-preset-url="https://jsonplaceholder.typicode.com/todos/1">JSONPlaceholder Todo</button>
+            <button type="button" class="preset-chip" data-preset-url="https://httpbin.org/get">HTTPBin Get</button>
+        </div>
+    </section>
+
     <section class="card log-card">
         <div class="log-head">
-            <h2>Recent requests</h2>
-            <button type="button" id="refresh-log">Refresh</button>
+            <h2>Telemetry & Request History</h2>
+            <div class="log-actions">
+                <select id="auto-refresh-select" aria-label="Auto-refresh interval">
+                    <option value="30000">Auto: 30s</option>
+                    <option value="15000">Auto: 15s</option>
+                    <option value="60000">Auto: 60s</option>
+                    <option value="0">Auto: Paused</option>
+                </select>
+                <button type="button" id="refresh-log">Scan All</button>
+                <button type="button" id="clear-log">Clear</button>
+            </div>
         </div>
         <ul class="log-list" id="log-list"></ul>
     </section>

@@ -25,8 +25,14 @@
 </header>
 
 <header class="site-bar">
-    <a class="back-link" href="../../projects.html" data-root-href="projects.html">← All projects</a>
-    <a class="back-link" href="../../index.html" data-root-href="index.html">Portfolio home</a>
+    <a class="back-link" href="../../projects.html" data-root-href="projects.html">
+        <svg class="nav-chevron nav-chevron--left" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"></polyline></svg>
+        <span>All projects</span>
+    </a>
+    <a class="back-link" href="../../index.html" data-root-href="index.html">
+        <span>Portfolio home</span>
+        <svg class="nav-chevron nav-chevron--right" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"></polyline></svg>
+    </a>
 </header>
 
 <main class="app-wrap">
@@ -38,8 +44,20 @@
         <form class="search-row" id="weather-form">
             <label class="sr-only" for="city-input">City name</label>
             <input id="city-input" type="text" placeholder="e.g. London, Karachi, Tokyo" required>
+            <button type="button" class="geo-btn" id="geo-btn" title="Use current location" aria-label="Use current location">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="3 11 22 2 13 21 11 13 3 11"></polygon></svg>
+            </button>
             <button type="submit">Search</button>
         </form>
+
+        <div class="quick-cities" aria-label="Popular cities">
+            <button type="button" class="city-chip" data-city="London">London</button>
+            <button type="button" class="city-chip" data-city="New York">New York</button>
+            <button type="button" class="city-chip" data-city="Tokyo">Tokyo</button>
+            <button type="button" class="city-chip" data-city="Paris">Paris</button>
+            <button type="button" class="city-chip" data-city="Karachi">Karachi</button>
+            <button type="button" class="city-chip" data-city="Dubai">Dubai</button>
+        </div>
 
         <div class="unit-toggle" role="group" aria-label="Temperature unit">
             <button type="button" class="unit-btn is-active" data-unit="c">°C</button>
@@ -47,6 +65,7 @@
         </div>
 
         <div class="weather-result" id="weather-result" hidden>
+            <div class="condition-icon" id="condition-icon" aria-hidden="true">☀️</div>
             <p class="city-name" id="city-name"></p>
             <p class="temp" id="temp"></p>
             <p class="condition" id="condition"></p>

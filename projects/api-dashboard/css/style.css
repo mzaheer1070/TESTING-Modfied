@@ -121,6 +121,142 @@
     color: #f59e0b;
 }
 
+.probe-custom-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 22px;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow-md);
+}
+
+.probe-custom-card h2 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin-bottom: 12px;
+}
+
+.custom-probe-form {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.custom-probe-form select {
+    background: var(--surface-strong);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0 14px;
+    font-weight: 700;
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+.custom-probe-form input {
+    flex: 1;
+    background: var(--surface-strong);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+}
+
+.custom-probe-form input:focus,
+.custom-probe-form select:focus {
+    outline: none;
+    border-color: var(--primary);
+}
+
+.custom-probe-form button {
+    background: var(--primary);
+    color: #000;
+    font-weight: 800;
+    border: none;
+    border-radius: 8px;
+    padding: 0 22px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.custom-probe-form button:hover {
+    background: var(--primary-hover);
+    transform: translateY(-1px);
+}
+
+.presets-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+.presets-label {
+    font-size: 0.8rem;
+    color: var(--muted);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.preset-chip {
+    background: var(--surface-strong);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    border-radius: 9999px;
+    padding: 4px 12px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.preset-chip:hover {
+    color: var(--primary);
+    border-color: var(--primary);
+}
+
+.log-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.log-actions select,
+.log-actions button {
+    background: var(--surface-strong);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 8px;
+    padding: 6px 14px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.log-actions button:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+@media (max-width: 640px) {
+    .custom-probe-form {
+        flex-direction: column;
+    }
+    .custom-probe-form button {
+        height: 42px;
+    }
+    .log-head {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
 .log-empty {
     grid-template-columns: 1fr !important;
     color: var(--muted);
