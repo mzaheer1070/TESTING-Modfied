@@ -587,6 +587,7 @@ body[data-temp-band="hot"] .cinematic-temp-num {
     stroke-width: 5;
     stroke-linecap: round;
     animation: rotateSun 14s linear infinite;
+    transform-box: view-box;
     transform-origin: 50px 50px;
 }
 
@@ -829,27 +830,27 @@ body[data-theme="light"] .weather-trend-svg .grid-line {
 .chart-tooltip {
     position: absolute;
     pointer-events: none;
-    z-index: 50;
-    padding: 8px 12px;
-    border-radius: 10px;
-    background: rgba(10, 16, 30, 0.92);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    z-index: 60;
+    padding: 5px 10px;
+    border-radius: 8px;
+    background: rgba(8, 14, 26, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.55);
     color: #ffffff;
-    font-size: 0.8rem;
-    line-height: 1.4;
+    font-size: 0.76rem;
+    line-height: 1.35;
     opacity: 0;
-    transition: opacity 0.15s ease, transform 0.15s ease;
-    transform: translate(-50%, -100%) translateY(-10px);
+    transition: opacity 0.15s ease;
     white-space: nowrap;
+    text-align: center;
 }
 
 body[data-theme="light"] .chart-tooltip {
     background: rgba(255, 255, 255, 0.96);
     border-color: rgba(15, 23, 42, 0.15);
-    box-shadow: 0 10px 25px rgba(15, 23, 42, 0.15);
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.15);
     color: #0f172a;
 }
 
@@ -1366,31 +1367,21 @@ body.cinematic-fullscreen .cinematic-mode-overlay {
    ========================================================================== */
 .quick-cities-bar {
     width: min(100%, 760px);
-    margin: 14px auto 0;
+    margin: 12px auto 0;
     display: flex;
     align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
-}
-
-.quick-cities-label {
-    font-size: .82rem;
-    font-weight: 700;
-    color: rgba(255, 255, 255, .7);
-    text-transform: uppercase;
-    letter-spacing: .05em;
-    flex-shrink: 0;
-}
-
-body[data-theme="light"] .quick-cities-label {
-    color: #4b5578;
+    justify-content: center;
+    padding: 0 4px;
+    box-sizing: border-box;
 }
 
 .quick-cities-list {
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 8px;
     flex-wrap: wrap;
+    width: 100%;
 }
 
 .quick-chip {
@@ -1701,33 +1692,59 @@ body[data-theme="light"] .pollutant-pill {
 .weather-back-link {
     position: relative;
     z-index: 51;
-    color: var(--text-muted, #94a3b8);
-    font-size: 0.84rem;
+    color: #cbd5e1;
+    font-size: 0.82rem;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.05em;
     text-decoration: none;
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 7px 16px;
+    gap: 7px;
+    padding: 8px 16px;
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(8, 14, 26, 0.92);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
     transition: transform 0.2s ease, color 0.2s ease, background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
     cursor: pointer;
 }
 
-.weather-back-link:hover {
-    color: #10b981;
-    background: rgba(16, 185, 129, 0.12);
-    border-color: rgba(16, 185, 129, 0.4);
-    box-shadow: 0 0 16px rgba(16, 185, 129, 0.2);
-    transform: translateX(-3px);
+.nav-chevron {
+    flex-shrink: 0;
+    transition: transform 0.2s ease, stroke 0.2s ease;
 }
 
-#weatherHomePortfolio:hover {
-    transform: translateX(3px);
+.weather-back-link:hover {
+    color: #10b981;
+    background: rgba(4, 28, 20, 0.96);
+    border-color: rgba(16, 185, 129, 0.5);
+    box-shadow: 0 0 16px rgba(16, 185, 129, 0.3);
+    transform: translateY(-1px);
+}
+
+.weather-back-link:hover .nav-chevron {
+    stroke: #10b981;
+}
+
+#weatherBackToPortfolio:hover .nav-chevron {
+    transform: translateX(-2px);
+}
+
+#weatherHomePortfolio:hover .nav-chevron {
+    transform: translateX(2px);
+}
+
+body[data-theme="light"] .weather-back-link {
+    background: rgba(15, 23, 42, 0.88);
+    color: #f8fafc;
+    border-color: rgba(15, 23, 42, 0.4);
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.18);
+}
+
+body[data-theme="light"] .weather-back-link:hover {
+    background: #0f172a;
+    color: #10b981;
 }
 
 .weather-badge {

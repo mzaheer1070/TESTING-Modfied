@@ -400,14 +400,14 @@
         const rainAmounts = hourly.precipitation ? hourly.precipitation.slice(0, count) : [];
         const rainProbs = hourly.precipitation_probability ? hourly.precipitation_probability.slice(0, count) : [];
 
-        const width = 760;
+        const width = 860;
         const height = 240;
-        const padding = { top: 32, right: 35, bottom: 44, left: 45 };
+        const padding = { top: 42, right: 24, bottom: 38, left: 38 };
         const chartW = width - padding.left - padding.right;
         const chartH = height - padding.top - padding.bottom;
 
         const minTemp = Math.floor(Math.min(...temps)) - 2;
-        const maxTemp = Math.ceil(Math.max(...temps)) + 2;
+        const maxTemp = Math.ceil(Math.max(...temps)) + 3;
         const tempRange = Math.max(maxTemp - minTemp, 4);
 
         const maxRainProb = Math.max(100, ...rainProbs);
@@ -420,6 +420,33 @@
         const tooltip = document.createElement('div');
         tooltip.className = 'chart-tooltip';
         wrapper.appendChild(tooltip);
+
+        function positionTooltip(targetEl) {
+            const rectBox = wrapper.getBoundingClientRect();
+            const eBox = targetEl.getBoundingClientRect();
+            const targetCenterX = (eBox.left + eBox.width / 2) - rectBox.left + wrapper.scrollLeft;
+            const targetTop = eBox.top - rectBox.top;
+
+            // For peak temperature or rain near top, flip below target so it always fits in the card
+            if (targetTop < 65) {
+                tooltip.style.top = `${targetTop + eBox.height + 8}px`;
+                tooltip.style.transform = 'translate(-50%, 0)';
+            } else {
+                tooltip.style.top = `${targetTop - 8}px`;
+                tooltip.style.transform = 'translate(-50%, -100%)';
+            }
+
+            // Clamp horizontal position so tooltip stays within the visible card area on mobile
+            const minX = wrapper.scrollLeft + 55;
+            const maxX = wrapper.scrollLeft + rectBox.width - 55;
+            const clampedX = Math.max(minX, Math.min(maxX, targetCenterX));
+            tooltip.style.left = `${clampedX}px`;
+            tooltip.style.opacity = '1';
+        }
+
+        function hideTooltip() {
+            tooltip.style.opacity = '0';
+        }
 
         // Build SVG
         const svgNS = 'http://www.w3.org/2000/svg';
@@ -456,7 +483,7 @@
             svg.appendChild(line);
 
             const yText = document.createElementNS(svgNS, 'text');
-            yText.setAttribute('x', padding.left - 10);
+            yText.setAttribute('x', padding.left - 8);
             yText.setAttribute('y', yPos + 4);
             yText.setAttribute('text-anchor', 'end');
             yText.setAttribute('class', 'axis-text');
@@ -486,18 +513,16 @@
                 const timeStr = new Date(times[i]).toLocaleTimeString('en-US', { hour: 'numeric' });
                 const rainAmt = rainAmounts[i] !== undefined ? `${Units.rain(rainAmounts[i]).toFixed(1)} ${Units.rainUnit()}` : '';
 
-                rect.addEventListener('mouseenter', e => {
-                    tooltip.innerHTML = `<strong>${timeStr}</strong><br/>💧 Rain chance: ${prob}%${rainAmt ? `<br/>Precipitation: ${rainAmt}` : ''}`;
-                    const rectBox = wrapper.getBoundingClientRect();
-                    const eBox = rect.getBoundingClientRect();
-                    tooltip.style.left = `${(eBox.left + eBox.width / 2) - rectBox.left}px`;
-                    tooltip.style.top = `${eBox.top - rectBox.top}px`;
-                    tooltip.style.opacity = '1';
-                });
+                const showRainDetails = (e) => {
+                    if (e) e.stopPropagation();
+                    tooltip.innerHTML = `<strong>${timeStr}</strong><br/>💧 Rain chance: ${prob}%${rainAmt ? `<br/>Rain: ${rainAmt}` : ''}`;
+                    positionTooltip(rect);
+                };
 
-                rect.addEventListener('mouseleave', () => {
-                    tooltip.style.opacity = '0';
-                });
+                rect.addEventListener('mouseenter', showRainDetails);
+                rect.addEventListener('click', showRainDetails);
+                rect.addEventListener('pointerdown', showRainDetails);
+                rect.addEventListener('mouseleave', hideTooltip);
 
                 svg.appendChild(rect);
             }
@@ -548,28 +573,26 @@
             const circle = document.createElementNS(svgNS, 'circle');
             circle.setAttribute('cx', x);
             circle.setAttribute('cy', y);
-            circle.setAttribute('r', '4');
+            circle.setAttribute('r', '4.5');
             circle.setAttribute('fill', '#ffffff');
             circle.setAttribute('stroke', '#ff7043');
-            circle.setAttribute('stroke-width', '2');
+            circle.setAttribute('stroke-width', '2.5');
             circle.setAttribute('class', 'chart-point');
 
             const timeStr = new Date(times[i]).toLocaleTimeString('en-US', { hour: 'numeric' });
             const tempVal = Math.round(temps[i]);
             const prob = rainProbs[i] !== undefined ? `${rainProbs[i]}%` : '0%';
 
-            circle.addEventListener('mouseenter', () => {
-                tooltip.innerHTML = `<strong>${timeStr}</strong><br/>🌡️ Temp: <strong>${tempVal}${Units.tempUnit()}</strong><br/>💧 Rain chance: ${prob}`;
-                const rectBox = wrapper.getBoundingClientRect();
-                const eBox = circle.getBoundingClientRect();
-                tooltip.style.left = `${(eBox.left + eBox.width / 2) - rectBox.left}px`;
-                tooltip.style.top = `${eBox.top - rectBox.top}px`;
-                tooltip.style.opacity = '1';
-            });
+            const showTempDetails = (e) => {
+                if (e) e.stopPropagation();
+                tooltip.innerHTML = `<strong>${timeStr}</strong><br/>🌡️ Temp: <strong>${tempVal}${Units.tempUnit()}</strong><br/>💧 Rain: ${prob}`;
+                positionTooltip(circle);
+            };
 
-            circle.addEventListener('mouseleave', () => {
-                tooltip.style.opacity = '0';
-            });
+            circle.addEventListener('mouseenter', showTempDetails);
+            circle.addEventListener('click', showTempDetails);
+            circle.addEventListener('pointerdown', showTempDetails);
+            circle.addEventListener('mouseleave', hideTooltip);
 
             svg.appendChild(circle);
 
@@ -584,6 +607,13 @@
                 svg.appendChild(xText);
             }
         }
+
+        // Dismiss tooltip on outside click
+        wrapper.addEventListener('click', (e) => {
+            if (!e.target.closest('.chart-point') && !e.target.closest('.chart-bar')) {
+                hideTooltip();
+            }
+        });
 
         wrapper.appendChild(svg);
     }

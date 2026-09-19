@@ -857,9 +857,16 @@
         const clouds = document.querySelectorAll('.sky-cloud');
         const cover = Math.max(0, Math.min(100, Number(cloudCover) || 0));
         const coverFactor = cover / 100;
+        const isNight = document.body.dataset.daytime === 'night';
         const isCloudy = ['clouds', 'fog', 'rain', 'shower', 'drizzle', 'light_drizzle', 'snow', 'thunder'].includes(currentScene);
 
-        const baseOpacity = isCloudy ? Math.min(0.96, 0.25 + coverFactor * 0.72) : coverFactor * 0.38;
+        // Intensity of cloud strictly linked to cloud cover (especially at night)
+        let baseOpacity;
+        if (isNight) {
+            baseOpacity = coverFactor > 0.05 ? Math.min(0.75, coverFactor * 0.75) : 0;
+        } else {
+            baseOpacity = isCloudy ? Math.min(0.96, 0.25 + coverFactor * 0.72) : coverFactor * 0.38;
+        }
 
         // Dynamic cloud drift speed driven by actual wind velocity (km/h)
         const driftDuration = Math.max(18, Math.min(110, Math.round(95 - Math.min(75, windSpeed * 1.3))));
@@ -869,12 +876,19 @@
             cloud.style.opacity = String(layerOpacity);
             cloud.style.animationDuration = `${driftDuration * (1 + index * 0.3)}s`;
 
-            if (currentScene === 'thunder') {
+            if (isNight) {
+                const nightScale = Math.max(0.62, Math.min(0.8, 0.62 + coverFactor * 0.18));
+                cloud.style.filter = `drop-shadow(0 10px 22px rgba(0, 0, 0, 0.65)) brightness(${0.5 + coverFactor * 0.3})`;
+                cloud.style.transform = `scale(${nightScale})`;
+            } else if (currentScene === 'thunder') {
                 cloud.style.filter = 'drop-shadow(0 22px 45px rgba(0, 0, 0, 0.75)) brightness(0.6) saturate(0.75)';
+                cloud.style.transform = '';
             } else if (currentScene === 'rain' || currentScene === 'shower') {
                 cloud.style.filter = 'drop-shadow(0 18px 36px rgba(0, 0, 0, 0.5)) brightness(0.78) saturate(0.85)';
+                cloud.style.transform = '';
             } else {
                 cloud.style.filter = 'drop-shadow(0 14px 28px rgba(0, 0, 0, 0.2))';
+                cloud.style.transform = '';
             }
         });
 

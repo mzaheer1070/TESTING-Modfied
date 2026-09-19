@@ -3,7 +3,7 @@ body {
     --scene-bottom: #0f172a;
     --scene-glow: rgba(16, 185, 129, .15);
     background:
-        radial-gradient(circle at 50% 12%, var(--scene-glow), transparent 42%),
+        radial-gradient(circle at 84% 12%, var(--scene-glow), transparent 42%),
         linear-gradient(135deg, var(--scene-top), var(--scene-bottom));
     background-size: 140% 140%;
     animation: atmosphericShift 18s ease-in-out infinite alternate;
@@ -142,9 +142,7 @@ body[data-scene="thunder"] {
 
 .sky-gradient {
     opacity: .85;
-    background:
-        radial-gradient(circle at 50% 18%, rgba(255, 210, 110, .32), transparent 25%),
-        linear-gradient(180deg, rgba(20, 35, 75, .25), transparent 75%);
+    background: linear-gradient(180deg, rgba(20, 35, 75, .25), transparent 75%);
     transition: opacity 1s ease, filter 1s ease;
 }
 
@@ -336,17 +334,27 @@ body[data-scene="thunder"] .cloud-shading {
 }
 
 body[data-daytime="night"] .sky-cloud {
-    background: radial-gradient(ellipse at 50% 30%, rgba(180, 200, 230, 0.4), rgba(120, 145, 185, 0.3) 65%, rgba(60, 80, 120, 0.2) 100%);
+    width: 250px;
+    height: 72px;
+    background: radial-gradient(ellipse at 50% 30%, rgba(18, 26, 44, 0.92), rgba(12, 17, 30, 0.86) 65%, rgba(6, 9, 18, 0.78) 100%);
     box-shadow: 
-        0 15px 35px rgba(10, 20, 45, 0.4),
-        inset 0 3px 10px rgba(220, 235, 255, 0.4),
-        inset 0 -6px 14px rgba(30, 45, 75, 0.5);
+        0 12px 28px rgba(0, 0, 0, 0.65),
+        inset 0 1px 3px rgba(110, 145, 200, 0.14),
+        inset 0 -4px 10px rgba(3, 5, 12, 0.75);
+    filter: blur(0.7px);
 }
 
 body[data-daytime="night"] .sky-cloud::before,
 body[data-daytime="night"] .sky-cloud::after,
 body[data-daytime="night"] .cloud-puff {
-    background: radial-gradient(circle at 40% 35%, rgba(190, 215, 245, 0.42), rgba(120, 145, 185, 0.32) 60%, rgba(60, 80, 120, 0.22) 100%);
+    background: radial-gradient(circle at 40% 35%, rgba(24, 34, 56, 0.94), rgba(14, 20, 34, 0.88) 60%, rgba(6, 9, 18, 0.8) 100%);
+    box-shadow: 
+        inset 0 1px 3px rgba(120, 155, 210, 0.16),
+        inset -2px -5px 10px rgba(3, 5, 12, 0.75);
+}
+
+body[data-daytime="night"] .cloud-shading {
+    background: linear-gradient(180deg, transparent, rgba(2, 4, 10, 0.65));
 }
 
 .cloud-one {
@@ -426,16 +434,18 @@ body[data-scene="thunder"] .sky-cloud {
 
 .sky-rays {
     position: absolute;
-    inset: -50vw -50vh;
-    width: calc(100vw + 100vh);
-    height: calc(100vw + 100vh);
+    top: 12%;
+    left: 84%;
+    width: clamp(600px, 150vmax, 2200px);
+    height: clamp(600px, 150vmax, 2200px);
+    border-radius: 50%;
     opacity: 0;
     pointer-events: none;
-    transform-origin: 84% 12%;
-    transform: translate3d(var(--parallax-x, 0px), var(--parallax-y, 0px), 0);
+    transform-origin: center;
+    transform: translate3d(calc(-50% + var(--parallax-x, 0px)), calc(-50% + var(--parallax-y, 0px)), 0);
     background: repeating-conic-gradient(
-        from 0deg at 84% 12%,
-        rgba(255, 226, 145, .16) 0deg 7deg,
+        from 0deg at center,
+        rgba(255, 226, 145, .15) 0deg 7deg,
         transparent 7deg 20deg
     );
     transition: opacity 1s ease, transform 0.2s cubic-bezier(0.2, 0, 0.2, 1);

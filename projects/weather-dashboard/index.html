@@ -140,17 +140,18 @@
     <main class="container">
         <nav class="weather-top-bar" aria-label="Portfolio Return Bridge">
             <a class="weather-back-link" id="weatherBackToPortfolio" href="../../projects.html" data-portfolio-return="../../projects.html" title="Return to Portfolio Projects">
-                <span aria-hidden="true">←</span> Back to Projects
+                <svg class="nav-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                <span>Back to Projects</span>
             </a>
-            <span class="weather-badge">🌤️ Weather Dashboard Pro</span>
+            <span class="weather-badge">Weather Dashboard Pro</span>
             <a class="weather-back-link" id="weatherHomePortfolio" href="../../index.html" data-portfolio-return="../../index.html" title="Return to Portfolio Home">
-                Back to Home <span aria-hidden="true">→</span>
+                <span>Back to Home</span>
+                <svg class="nav-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"></polyline></svg>
             </a>
         </nav>
 
         <header class="header">
             <h1>Weather Dashboard <span>Pro</span></h1>
-            <p class="subtitle">Real-time weather with cinematic effects</p>
 
             <div class="header-controls unified-toolbar" role="toolbar" aria-label="Dashboard controls">
                 <button id="unitToggle" class="toolbar-btn unit-toggle" type="button" aria-label="Toggle Temperature Units" title="Toggle °C / °F">
@@ -193,9 +194,6 @@
 
             <!-- Quick Favorites & Preset Cities -->
             <div class="quick-cities-bar" id="quickCitiesBar" aria-label="Favorite and quick access cities">
-                <div class="quick-cities-label">
-                    <span>⚡ Quick Access</span>
-                </div>
                 <div class="quick-cities-list" id="quickCitiesList">
                     <!-- Populated dynamically via JS -->
                 </div>
