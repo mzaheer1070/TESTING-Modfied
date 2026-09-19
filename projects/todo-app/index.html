@@ -37,19 +37,41 @@
 
 <main class="app-wrap">
     <h1>Todo App</h1>
-    <p>Add tasks, mark them done, and filter your list. Saved in your browser.</p>
+    <p>Add tasks, set priorities & due dates, search quickly, and track completion progress.</p>
+
+    <!-- Progress Indicator -->
+    <div class="progress-container" id="progress-container">
+        <div class="progress-info">
+            <span class="progress-label" id="progress-text">0% Completed</span>
+            <span class="progress-subtext" id="progress-counts">0 of 0 tasks done</span>
+        </div>
+        <div class="progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+            <div class="progress-fill" id="progress-fill"></div>
+        </div>
+    </div>
 
     <section class="card todo-card">
         <form class="todo-form" id="todo-form">
             <label class="sr-only" for="todo-input">New task</label>
             <input id="todo-input" type="text" placeholder="What do you need to do?" maxlength="120" required>
-            <select id="todo-priority" class="todo-priority-select" aria-label="Task priority">
-                <option value="normal">Normal</option>
-                <option value="high">High</option>
-                <option value="urgent">Urgent</option>
-            </select>
-            <button type="submit">Add Task</button>
+            
+            <div class="form-sub-row">
+                <select id="todo-priority" class="todo-priority-select" aria-label="Task priority">
+                    <option value="normal">Normal</option>
+                    <option value="high">High</option>
+                    <option value="urgent">Urgent</option>
+                </select>
+                <input type="date" id="todo-date" class="todo-date-input" aria-label="Optional Due Date" title="Optional Due Date">
+                <button type="submit" id="btn-add-task">Add Task</button>
+            </div>
         </form>
+
+        <!-- Search Bar -->
+        <div class="search-bar-wrap">
+            <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <input type="search" id="todo-search" placeholder="Search tasks by keyword or priority…" aria-label="Search tasks">
+            <button type="button" class="btn-clear-search" id="btn-clear-search" hidden aria-label="Clear search">×</button>
+        </div>
 
         <div class="filter-row" role="group" aria-label="Filter tasks">
             <div class="filter-group">
@@ -57,11 +79,24 @@
                 <button type="button" class="filter-btn" data-filter="active">Active <span class="count-badge" id="count-active">0</span></button>
                 <button type="button" class="filter-btn" data-filter="done">Done <span class="count-badge" id="count-done">0</span></button>
             </div>
-            <button type="button" class="clear-done-btn" id="clear-done-btn">Clear Completed</button>
+            <div class="actions-group">
+                <button type="button" class="clear-done-btn" id="clear-done-btn">Clear Completed</button>
+            </div>
         </div>
 
         <ul class="todo-list" id="todo-list"></ul>
-        <p class="empty-msg" id="empty-msg" hidden>No tasks yet — add one above.</p>
+        <p class="empty-msg" id="empty-msg" hidden>No tasks found.</p>
+
+        <div class="todo-footer-tools">
+            <button type="button" class="tool-btn" id="btn-copy-checklist">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                <span>Copy Checklist</span>
+            </button>
+            <button type="button" class="tool-btn" id="btn-export-tasks">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                <span>Export JSON</span>
+            </button>
+        </div>
     </section>
 </main>
 

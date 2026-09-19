@@ -44,22 +44,76 @@
 
     <!-- Custom Endpoint Prober -->
     <section class="probe-custom-card">
-        <h2>Live Endpoint Prober</h2>
+        <div class="probe-header-row">
+            <h2>Live Endpoint Prober</h2>
+            <button type="button" class="btn-toggle-options" id="btn-toggle-options">Advanced Options ▾</button>
+        </div>
         <form class="custom-probe-form" id="custom-probe-form">
             <select id="probe-method" aria-label="HTTP Method">
                 <option value="GET">GET</option>
                 <option value="POST">POST</option>
+                <option value="PUT">PUT</option>
+                <option value="PATCH">PATCH</option>
+                <option value="DELETE">DELETE</option>
                 <option value="HEAD">HEAD</option>
             </select>
             <input type="url" id="probe-url" placeholder="https://api.github.com/users/octocat" required aria-label="Endpoint URL">
             <button type="submit" id="btn-probe">Test Endpoint</button>
         </form>
+
+        <div class="probe-advanced-panel" id="probe-advanced-panel" hidden>
+            <div class="advanced-grid">
+                <div>
+                    <label for="probe-headers">Custom Headers (JSON or Key: Value per line):</label>
+                    <textarea id="probe-headers" placeholder='{"Accept": "application/json"}' rows="3"></textarea>
+                </div>
+                <div>
+                    <label for="probe-body">Request Body (JSON for POST/PUT):</label>
+                    <textarea id="probe-body" placeholder='{"name": "test", "active": true}' rows="3"></textarea>
+                </div>
+            </div>
+        </div>
+
         <div class="presets-row">
             <span class="presets-label">Quick Presets:</span>
             <button type="button" class="preset-chip" data-preset-url="https://api.github.com/users/octocat">GitHub User API</button>
             <button type="button" class="preset-chip" data-preset-url="https://api.open-meteo.com/v1/forecast?latitude=40.71&longitude=-74.01&current=temperature_2m">Open-Meteo Weather</button>
             <button type="button" class="preset-chip" data-preset-url="https://jsonplaceholder.typicode.com/todos/1">JSONPlaceholder Todo</button>
             <button type="button" class="preset-chip" data-preset-url="https://httpbin.org/get">HTTPBin Get</button>
+            <button type="button" class="preset-chip" data-preset-url="https://dummyjson.com/quotes/random">DummyJSON Quote</button>
+        </div>
+    </section>
+
+    <!-- Response Inspector Section -->
+    <section class="card inspector-card" id="inspector-card" hidden>
+        <div class="inspector-header">
+            <div class="inspector-meta">
+                <span class="inspector-badge" id="inspector-status-badge">200 OK</span>
+                <span class="inspector-url" id="inspector-url"></span>
+                <span class="inspector-latency" id="inspector-latency"></span>
+            </div>
+            <div class="inspector-actions">
+                <button type="button" class="inspector-btn" id="btn-copy-response">Copy Body</button>
+                <button type="button" class="inspector-btn" id="btn-close-inspector">Close</button>
+            </div>
+        </div>
+
+        <div class="inspector-tabs">
+            <button type="button" class="inspector-tab is-active" data-tab="body">Response Body</button>
+            <button type="button" class="inspector-tab" data-tab="headers">Headers (<span id="headers-count">0</span>)</button>
+        </div>
+
+        <div class="inspector-content" id="tab-content-body">
+            <pre class="inspector-code" id="inspector-body-code">No response yet.</pre>
+        </div>
+
+        <div class="inspector-content" id="tab-content-headers" hidden>
+            <table class="headers-table">
+                <thead>
+                    <tr><th>Header</th><th>Value</th></tr>
+                </thead>
+                <tbody id="inspector-headers-body"></tbody>
+            </table>
         </div>
     </section>
 
@@ -74,9 +128,11 @@
                     <option value="0">Auto: Paused</option>
                 </select>
                 <button type="button" id="refresh-log">Scan All</button>
+                <button type="button" id="export-log">Export JSON</button>
                 <button type="button" id="clear-log">Clear</button>
             </div>
         </div>
+        <p class="log-hint">Click any history entry below to inspect its full payload & headers.</p>
         <ul class="log-list" id="log-list"></ul>
     </section>
 </main>
