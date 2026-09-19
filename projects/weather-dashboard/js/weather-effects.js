@@ -7,10 +7,15 @@
     const ctx = canvas.getContext('2d', { alpha: true });
     if (!ctx) return;
 
+    // Device and mobile detection
+    const isMobile = window.innerWidth <= 768 || ('ontouchstart' in window && window.innerWidth <= 1024);
+
     // Viewport dimensions & scaling
     let width = window.innerWidth;
     let height = window.innerHeight;
-    let dpr = Math.min(window.devicePixelRatio || 1, 2);
+    let lastWidth = width;
+    let lastHeight = height;
+    let dpr = isMobile ? Math.min(window.devicePixelRatio || 1, 1.25) : Math.min(window.devicePixelRatio || 1, 2);
 
     // Weather state
     let currentScene = 'idle';
@@ -30,12 +35,15 @@
     let targetParallaxY = 0;
     let currentParallaxX = 0;
     let currentParallaxY = 0;
+    let lastAppliedParallaxX = '';
+    let lastAppliedParallaxY = '';
+    const skyContainer = document.getElementById('atmosphericSky');
 
     // Performance & Delta Time
     let lastTime = performance.now();
     let animationFrameId = null;
     let frameDropCounter = 0;
-    let adaptiveScale = 1.0;
+    let adaptiveScale = isMobile ? 0.75 : 1.0;
 
     // Lightning & Storm
     let stormTimer = null;
@@ -43,8 +51,8 @@
     let activeLightningBolt = null;
 
     // Particle Object Pool
-    const MAX_PARTICLES = 360;
-    const MAX_SPLASHES = 75;
+    const MAX_PARTICLES = isMobile ? 160 : 360;
+    const MAX_SPLASHES = isMobile ? 25 : 75;
     const particles = [];
     const splashes = [];
 
@@ -83,18 +91,18 @@
         });
     }
 
-    // Base particle counts per scene - distinct intensities
+    // Base particle counts per scene - distinct intensities (mobile-optimized)
     const SCENE_PARTICLE_TARGETS = {
-        idle: 35,
-        sun: 45,
-        clouds: 30,
-        fog: 50,
-        light_drizzle: 45, // subtle misty sprinkles
-        drizzle: 85,       // gentle steady drizzle
-        shower: 175,       // brisk passing showers
-        rain: 230,         // steady rain
-        thunder: 330,      // torrential thunderstorm downpour
-        snow: 140
+        idle: isMobile ? 14 : 35,
+        sun: isMobile ? 18 : 45,
+        clouds: isMobile ? 12 : 30,
+        fog: isMobile ? 20 : 50,
+        light_drizzle: isMobile ? 20 : 45, // subtle misty sprinkles
+        drizzle: isMobile ? 38 : 85,       // gentle steady drizzle
+        shower: isMobile ? 70 : 175,       // brisk passing showers
+        rain: isMobile ? 95 : 230,         // steady rain
+        thunder: isMobile ? 130 : 330,     // torrential thunderstorm downpour
+        snow: isMobile ? 60 : 140
     };
 
     function normaliseScene(nextScene, code) {
@@ -112,9 +120,20 @@
     }
 
     function resize() {
-        width = window.innerWidth;
-        height = window.innerHeight;
-        dpr = Math.min(window.devicePixelRatio || 1, 2);
+        const newWidth = window.innerWidth;
+        const newHeight = window.innerHeight;
+
+        // Mobile address bar expand/collapse changes height during vertical scrolling.
+        // Ignore height-only fluctuations to prevent wiping canvas and reseeding particles on scroll.
+        if (Math.abs(newWidth - lastWidth) < 6 && Math.abs(newHeight - lastHeight) < 140) {
+            return;
+        }
+
+        lastWidth = newWidth;
+        lastHeight = newHeight;
+        width = newWidth;
+        height = newHeight;
+        dpr = isMobile ? Math.min(window.devicePixelRatio || 1, 1.25) : Math.min(window.devicePixelRatio || 1, 2);
 
         canvas.width = Math.floor(width * dpr);
         canvas.height = Math.floor(height * dpr);
@@ -664,6 +683,20 @@
             frameDropCounter = Math.max(0, frameDropCounter - 1);
         }
 
+        // Smoothly interpolate celestial parallax once per frame
+        currentParallaxX += (targetParallaxX - currentParallaxX) * 0.08;
+        currentParallaxY += (targetParallaxY - currentParallaxY) * 0.08;
+
+        const pxVal = (currentParallaxX * 16).toFixed(1);
+        const pyVal = (currentParallaxY * 10).toFixed(1);
+
+        if (skyContainer && (pxVal !== lastAppliedParallaxX || pyVal !== lastAppliedParallaxY)) {
+            lastAppliedParallaxX = pxVal;
+            lastAppliedParallaxY = pyVal;
+            skyContainer.style.setProperty('--parallax-x', `${pxVal}px`);
+            skyContainer.style.setProperty('--parallax-y', `${pyVal}px`);
+        }
+
         if (!document.hidden) {
             updateParticles(dt);
             render3DScene();
@@ -679,10 +712,6 @@
 
         targetParallaxX = ((mouseX / width) - 0.5) * 2; // -1 to 1
         targetParallaxY = ((mouseY / height) - 0.5) * 2;
-
-        // Apply 3D celestial parallax directly to CSS variables
-        document.body.style.setProperty('--parallax-x', `${(targetParallaxX * 18).toFixed(1)}px`);
-        document.body.style.setProperty('--parallax-y', `${(targetParallaxY * 12).toFixed(1)}px`);
     }
 
     // High-Realism Branching Lightning (Thin, Detailed, Frequent, Full Sky Coverage)
@@ -970,8 +999,6 @@
             if (e.gamma !== null && e.beta !== null) {
                 targetParallaxX = Math.max(-1, Math.min(1, e.gamma / 30));
                 targetParallaxY = Math.max(-1, Math.min(1, (e.beta - 40) / 30));
-                document.body.style.setProperty('--parallax-x', `${(targetParallaxX * 16).toFixed(1)}px`);
-                document.body.style.setProperty('--parallax-y', `${(targetParallaxY * 10).toFixed(1)}px`);
             }
         }, { passive: true });
     }

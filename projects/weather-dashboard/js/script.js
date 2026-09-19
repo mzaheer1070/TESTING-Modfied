@@ -103,11 +103,20 @@
         if (!element || !Number.isFinite(numericTarget)) return;
 
         const start = Number(element.dataset.value || 0);
-        const startTime = performance.now();
         element.dataset.value = String(numericTarget);
 
+        // Fast-path: don't start animation frames if value is already target
+        if (start === numericTarget) {
+            element.textContent = formatter(numericTarget);
+            return;
+        }
+
+        const isMobile = window.innerWidth <= 768;
+        const duration = isMobile ? 240 : 450;
+        const startTime = performance.now();
+
         function frame(now) {
-            const progress = Math.min((now - startTime) / 500, 1);
+            const progress = Math.min((now - startTime) / duration, 1);
             const eased = 1 - Math.pow(1 - progress, 3);
 
             element.textContent = formatter(
@@ -1509,6 +1518,15 @@
 
         if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
             return;
+        }
+
+        // Avoid re-fetching if coordinates are virtually identical to currentPlace
+        if (currentPlace && Number.isFinite(currentPlace.lat)) {
+            const dLat = Math.abs(latitude - currentPlace.lat);
+            const dLon = Math.abs(longitude - currentPlace.lon);
+            if (dLat < 0.08 && dLon < 0.08) {
+                return;
+            }
         }
 
         try {

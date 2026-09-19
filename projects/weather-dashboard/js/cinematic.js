@@ -5,10 +5,42 @@
 
     if (!mapElement || !window.L) return;
 
+    const isTouchDevice = 'ontouchstart' in window || (navigator.maxTouchPoints > 0);
+
     const map = L.map(mapElement, {
         zoomControl: true,
-        attributionControl: true
+        attributionControl: true,
+        scrollWheelZoom: false,
+        tap: false // Crucial for mobile: prevents synthetic double clicks and phantom tap events
     }).setView([20, 0], 2);
+
+    // Optimize touch handling on mobile devices: prevent page scroll locking
+    if (isTouchDevice && window.innerWidth <= 768) {
+        map.dragging.disable();
+
+        const panToggle = document.createElement('button');
+        panToggle.type = 'button';
+        panToggle.className = 'map-pan-toggle-btn';
+        panToggle.innerHTML = '🖐️ Enable Map Pan';
+        panToggle.setAttribute('aria-label', 'Toggle map panning');
+        let panEnabled = false;
+
+        panToggle.onclick = e => {
+            e.stopPropagation();
+            panEnabled = !panEnabled;
+            if (panEnabled) {
+                map.dragging.enable();
+                panToggle.innerHTML = '🔒 Lock Map Scroll';
+                panToggle.classList.add('active');
+            } else {
+                map.dragging.disable();
+                panToggle.innerHTML = '🖐️ Enable Map Pan';
+                panToggle.classList.remove('active');
+            }
+        };
+
+        mapElement.appendChild(panToggle);
+    }
 
     const lightTiles = L.tileLayer(
         'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
@@ -185,8 +217,51 @@
         setTimeout(() => map.invalidateSize(), 100);
     }
 
+    // Touch gesture tracking: distinguish between scrolling over the map and an intentional tap
+    let touchMoved = false;
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let touchStartTime = 0;
+
+    mapElement.addEventListener('touchstart', e => {
+        if (e.touches && e.touches.length === 1) {
+            touchMoved = false;
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+            touchStartTime = performance.now();
+        }
+    }, { passive: true });
+
+    mapElement.addEventListener('touchmove', e => {
+        if (e.touches && e.touches.length > 0) {
+            const dx = Math.abs(e.touches[0].clientX - touchStartX);
+            const dy = Math.abs(e.touches[0].clientY - touchStartY);
+            if (dx > 7 || dy > 7) {
+                touchMoved = true;
+            }
+        }
+    }, { passive: true });
+
     map.on('click', event => {
+        // If this click originated from a touch scroll or finger drag, ignore completely
+        if (touchMoved) return;
+
+        // If on a touch device and the touch was too long (dragging) or too short (accidental brush)
+        if (isTouchDevice && touchStartTime > 0) {
+            const duration = performance.now() - touchStartTime;
+            if (duration > 480 || duration < 35) return;
+        }
+
         const { lat, lng } = event.latlng;
+
+        // If clicking virtually identical coordinates to the current weather, do not re-fetch
+        if (window.__lastWeatherDetail && Number.isFinite(window.__lastWeatherDetail.latitude)) {
+            const dLat = Math.abs(lat - window.__lastWeatherDetail.latitude);
+            const dLng = Math.abs(lng - window.__lastWeatherDetail.longitude);
+            if (dLat < 0.08 && dLng < 0.08) {
+                return;
+            }
+        }
 
         updateMap(lat, lng, 'Loading weather...');
 
