@@ -31,28 +31,23 @@ This is a personal portfolio website featuring web development projects, API int
 
 ## 🛠️ Tech Stack
 
-### Frontend
-
-* HTML5 (Semantic & Accessible)
-* CSS3 (Vanilla CSS, HSL Tokens, Glassmorphism, Responsive Grid/Flex)
-* JavaScript (ES6+ Modules, IntersectionObserver, Animations)
+### Frontend & UI
+* HTML5 & Vanilla JavaScript (ES6+ Modules, Touch & Mouse Gestures)
+* Custom Design System (HSL Color Variables, Glassmorphism, Responsive Grid/Flex)
+* Ambient Graphics & Audio (Interactive Particle Canvas, Web Audio API Synthesizer)
 * Google Fonts (Plus Jakarta Sans & JetBrains Mono)
 
-### Backend / Services
+### Backend & AI Services
+* Express 4 Server (`server.ts` with `tsx` dev runner and `esbuild` production bundler)
+* Google Gemini 2.5 Flash API (`/api/chat` multi-turn assistant endpoint)
+* Firebase Firestore (Cloud persistence for contact form submissions)
+* Open-Meteo API (High-precision meteorology & reverse geocoding)
+* Public REST APIs (GitHub, JSONPlaceholder, HTTP status prober)
 
-* Firebase Firestore
-* Open-Meteo API (High-precision weather & geocoding)
-* Public REST APIs
-
-### Development Tools
-
-* Git & GitHub
-* GitHub Actions (CI/CD)
-* VS Code / GitHub Codespaces
-
-### Hosting
-
-* GitHub Pages
+### Tooling & Build System
+* Vite 6 Multi-Page Application (MPA) Pipeline
+* TypeScript 5.8 (Strict type checking)
+* Git & GitHub Actions (Automated CI/CD deployment)
 
 ---
 
@@ -114,24 +109,40 @@ Portfolio/
 
 ## 🚀 Run Locally
 
-Clone the repository:
+### Option 1: Full-Stack (Vite + Express + Gemini AI)
 
-```bash
-git clone https://github.com/mzaheer1070/Portfolio.git
-cd Portfolio
-```
+1. Clone and install dependencies:
+   ```bash
+   git clone https://github.com/mzaheer1070/Portfolio.git
+   cd Portfolio
+   npm install
+   ```
 
-Start a local server:
+2. *(Optional)* Set up your environment variable for Gemini AI in `.env`:
+   ```env
+   GEMINI_API_KEY=your_gemini_api_key_here
+   ```
 
+3. Start the dev server:
+   ```bash
+   npm run dev
+   ```
+   Open `http://localhost:3000` in your browser.
+
+4. Build for production:
+   ```bash
+   npm run build
+   npm start
+   ```
+
+### Option 2: Static Server (Client-Only Preview)
+
+If running without Node/Express:
 ```bash
 python3 -m http.server 8000
+# or npx serve
 ```
-
-Open:
-
-```
-http://localhost:8000
-```
+Open `http://localhost:8000` in your browser.
 
 ---
 

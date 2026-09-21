@@ -59,6 +59,12 @@ const AmbientBackgroundEngine = (() => {
     // Parallax tracking for ambient blurred orbs & mesh
     let orbParallax = { currentX: 0, currentY: 0, targetX: 0, targetY: 0 };
 
+    // 3D Perspective Camera Tracking for spatial galaxy depth
+    let camAngleX = 0;
+    let camAngleY = 0;
+    let targetCamAngleX = 0;
+    let targetCamAngleY = 0;
+
     function init() {
         let bgContainer = document.getElementById("ambientBg");
         if (!bgContainer) {
@@ -102,6 +108,12 @@ const AmbientBackgroundEngine = (() => {
             // Smooth parallax target (-35px to +35px range)
             orbParallax.targetX = ((e.clientX / window.innerWidth) - 0.5) * 60;
             orbParallax.targetY = ((e.clientY / window.innerHeight) - 0.5) * 60;
+
+            // 3D Perspective camera target (-0.2 to +0.2 rad)
+            if (width > 0 && height > 0) {
+                targetCamAngleX = -((e.clientY / height) - 0.5) * 0.22;
+                targetCamAngleY = ((e.clientX / width) - 0.5) * 0.22;
+            }
         }, { passive: true });
 
         window.addEventListener("pointerleave", () => {
@@ -109,6 +121,8 @@ const AmbientBackgroundEngine = (() => {
             mouse.targetY = -9999;
             orbParallax.targetX = 0;
             orbParallax.targetY = 0;
+            targetCamAngleX = 0;
+            targetCamAngleY = 0;
         }, { passive: true });
 
         window.addEventListener("pointerdown", () => {
@@ -173,20 +187,27 @@ const AmbientBackgroundEngine = (() => {
         }
 
         if (mode === "constellation") {
-            // High-density primary constellation nodes
-            const count = Math.min(Math.floor((width * height) / 18000), 65);
+            // High-density primary constellation nodes in 3D volume space
+            const count = Math.min(Math.floor((width * height) / 16000), 75);
             for (let i = 0; i < count; i++) {
                 particles.push({
-                    x: Math.random() * width,
-                    y: Math.random() * height,
-                    vx: (Math.random() - 0.5) * 0.6,
-                    vy: (Math.random() - 0.5) * 0.6,
-                    radius: Math.random() * 2.4 + 1.2,
+                    x: (Math.random() - 0.5) * width * 1.4,
+                    y: (Math.random() - 0.5) * height * 1.4,
+                    z: Math.random() * 800 + 100, // Z depth from 100 (near) to 900 (deep)
+                    vx: (Math.random() - 0.5) * 0.45,
+                    vy: (Math.random() - 0.5) * 0.45,
+                    vz: -(Math.random() * 0.35 + 0.12), // Subtle spatial drift towards viewer
+                    radius: Math.random() * 2.2 + 1.2,
                     alpha: Math.random() * 0.5 + 0.35,
                     baseAlpha: Math.random() * 0.5 + 0.35,
                     pulse: Math.random() * Math.PI * 2,
                     pulseSpeed: Math.random() * 0.03 + 0.015,
-                    isCore: Math.random() > 0.75
+                    isCore: Math.random() > 0.72,
+                    sx: 0,
+                    sy: 0,
+                    sRadius: 0,
+                    sAlpha: 0,
+                    depthFactor: 1
                 });
             }
         } else if (mode === "nebula") {
@@ -306,12 +327,14 @@ const AmbientBackgroundEngine = (() => {
         const isDark = document.documentElement.dataset.theme !== "light";
         const mode = MODES[currentModeIndex].id;
 
-        // Render ambient background micro-starfield (HD Depth layer)
+        // Render ambient background micro-starfield (HD Depth layer with smooth inverse-parallax to mouse)
+        const bgParallaxX = -orbParallax.currentX * 0.45;
+        const bgParallaxY = -orbParallax.currentY * 0.45;
         for (let i = 0; i < backgroundStars.length; i++) {
             const star = backgroundStars[i];
             const starAlpha = star.alpha + Math.sin(timestamp * star.twinkleSpeed + star.phase) * 0.08;
             ctx.beginPath();
-            ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+            ctx.arc(star.x + bgParallaxX, star.y + bgParallaxY, star.radius, 0, Math.PI * 2);
             ctx.fillStyle = isDark ? `rgba(255, 255, 255, ${Math.max(0.04, starAlpha)})` : `rgba(15, 23, 42, ${Math.max(0.04, starAlpha * 0.8)})`;
             ctx.fill();
         }
@@ -334,82 +357,118 @@ const AmbientBackgroundEngine = (() => {
         }
 
         // ==========================================
-        // MODE 1: GALAXY MATRIX (High-Graphics Neural Constellation)
+        // MODE 1: GALAXY MATRIX (High-Graphics 3D Neural Constellation)
         // ==========================================
         if (mode === "constellation") {
             const primaryRGB = isDark ? "16, 185, 129" : "5, 150, 105";
             const accentRGB = isDark ? "56, 189, 248" : "2, 132, 199";
+            const cx = width / 2;
+            const cy = height / 2;
+            const focalLength = 650;
+
+            // Interpolate 3D camera angles smoothly
+            camAngleX += (targetCamAngleX - camAngleX) * 0.04 * timeScale;
+            camAngleY += (targetCamAngleY - camAngleY) * 0.04 * timeScale;
+
+            const cosY = Math.cos(camAngleY);
+            const sinY = Math.sin(camAngleY);
+            const cosX = Math.cos(camAngleX);
+            const sinX = Math.sin(camAngleX);
 
             for (let i = 0; i < particles.length; i++) {
                 const p = particles[i];
 
                 p.x += p.vx * timeScale;
                 p.y += p.vy * timeScale;
+                p.z += p.vz * timeScale;
 
-                // Smooth edge wraparound
-                if (p.x < -10) p.x = width + 10;
-                if (p.x > width + 10) p.x = -10;
-                if (p.y < -10) p.y = height + 10;
-                if (p.y > height + 10) p.y = -10;
+                // 3D volume wraparound
+                const xBound = width * 0.75;
+                const yBound = height * 0.75;
+                if (p.x < -xBound) p.x = xBound;
+                if (p.x > xBound) p.x = -xBound;
+                if (p.y < -yBound) p.y = yBound;
+                if (p.y > yBound) p.y = -yBound;
+                if (p.z < 80) {
+                    p.z = 900;
+                    p.x = (Math.random() - 0.5) * width * 1.4;
+                    p.y = (Math.random() - 0.5) * height * 1.4;
+                }
+                if (p.z > 950) p.z = 100;
 
                 // Dynamic pulsation
                 p.pulse += p.pulseSpeed * timeScale;
                 const pulseRadius = p.radius + Math.sin(p.pulse) * (p.isCore ? 0.8 : 0.3);
 
-                // Smooth Mouse Gravity & Attraction
+                // 3D Rotation projection
+                const rotX = p.x * cosY - p.z * sinY;
+                const rotZ = p.x * sinY + p.z * cosY;
+                const rotY = p.y * cosX - rotZ * sinX;
+                const finalZ = p.y * sinX + rotZ * cosX;
+
+                const depthFactor = focalLength / (focalLength + Math.max(finalZ, 40));
+                p.depthFactor = depthFactor;
+                p.sx = cx + rotX * depthFactor;
+                p.sy = cy + rotY * depthFactor;
+                p.sRadius = pulseRadius * depthFactor * 1.4;
+                p.sAlpha = Math.min(Math.max(p.baseAlpha * depthFactor * 1.35, 0.06), 0.95);
+
+                // Smooth Mouse Gravity & Attraction in 3D projected space
                 if (mouse.x > 0 && mouse.y > 0) {
-                    const dx = mouse.x - p.x;
-                    const dy = mouse.y - p.y;
-                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    const dx = mouse.x - p.sx;
+                    const dy = mouse.y - p.sy;
+                    const dist = Math.hypot(dx, dy);
 
                     if (dist < mouse.radius) {
                         const force = (mouse.radius - dist) / mouse.radius;
-                        p.x += (dx / dist) * force * 2.2 * timeScale;
-                        p.y += (dy / dist) * force * 2.2 * timeScale;
-                        p.alpha = Math.min(p.baseAlpha + 0.45, 0.95);
-                    } else {
-                        p.alpha += (p.baseAlpha - p.alpha) * 0.05 * timeScale;
+                        p.x += (dx / dist) * force * 2.8 * timeScale;
+                        p.y += (dy / dist) * force * 2.8 * timeScale;
+                        p.sAlpha = Math.min(p.sAlpha + 0.45, 0.98);
                     }
                 }
 
                 // Draw Core & Soft Luminescent Halo
-                if (p.isCore) {
-                    const halo = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, pulseRadius * 3.5);
-                    halo.addColorStop(0, `rgba(${accentRGB}, ${p.alpha * 0.45})`);
+                if (p.isCore && depthFactor > 0.45) {
+                    const haloRadius = p.sRadius * 3.5;
+                    const halo = ctx.createRadialGradient(p.sx, p.sy, 0, p.sx, p.sy, haloRadius);
+                    halo.addColorStop(0, `rgba(${accentRGB}, ${p.sAlpha * 0.45})`);
                     halo.addColorStop(1, `rgba(${accentRGB}, 0)`);
                     ctx.fillStyle = halo;
                     ctx.beginPath();
-                    ctx.arc(p.x, p.y, pulseRadius * 3.5, 0, Math.PI * 2);
+                    ctx.arc(p.sx, p.sy, haloRadius, 0, Math.PI * 2);
                     ctx.fill();
                 }
 
                 ctx.beginPath();
-                ctx.arc(p.x, p.y, pulseRadius, 0, Math.PI * 2);
-                ctx.fillStyle = p.isCore ? `rgba(${accentRGB}, ${p.alpha})` : `rgba(${primaryRGB}, ${p.alpha})`;
-                ctx.shadowBlur = p.isCore ? 10 : 5;
-                ctx.shadowColor = p.isCore ? `rgba(${accentRGB}, 0.7)` : `rgba(${primaryRGB}, 0.5)`;
+                ctx.arc(p.sx, p.sy, Math.max(p.sRadius, 0.8), 0, Math.PI * 2);
+                ctx.fillStyle = p.isCore ? `rgba(${accentRGB}, ${p.sAlpha})` : `rgba(${primaryRGB}, ${p.sAlpha})`;
+                if (depthFactor > 0.5) {
+                    ctx.shadowBlur = p.isCore ? 10 : 5;
+                    ctx.shadowColor = p.isCore ? `rgba(${accentRGB}, 0.7)` : `rgba(${primaryRGB}, 0.5)`;
+                }
                 ctx.fill();
                 ctx.shadowBlur = 0;
 
-                // High-fidelity Dual-Color Gradient Connections
+                // High-fidelity Dual-Color Gradient 3D Connections
                 for (let j = i + 1; j < particles.length; j++) {
                     const p2 = particles[j];
-                    const dx = p.x - p2.x;
-                    const dy = p.y - p2.y;
-                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    const d3 = Math.hypot(p.x - p2.x, p.y - p2.y, p.z - p2.z);
 
-                    if (dist < 135) {
-                        const lineAlpha = (1 - dist / 135) * 0.28;
-                        const lineGrad = ctx.createLinearGradient(p.x, p.y, p2.x, p2.y);
-                        lineGrad.addColorStop(0, `rgba(${primaryRGB}, ${lineAlpha * p.alpha})`);
-                        lineGrad.addColorStop(1, `rgba(${accentRGB}, ${lineAlpha * p2.alpha})`);
+                    if (d3 < 165) {
+                        const sDist = Math.hypot(p.sx - p2.sx, p.sy - p2.sy);
+                        if (sDist < 160) {
+                            const lineAlpha = (1 - d3 / 165) * Math.min(p.sAlpha, p2.sAlpha) * 0.36;
+                            const lineGrad = ctx.createLinearGradient(p.sx, p.sy, p2.sx, p2.sy);
+                            lineGrad.addColorStop(0, `rgba(${primaryRGB}, ${lineAlpha})`);
+                            lineGrad.addColorStop(1, `rgba(${accentRGB}, ${lineAlpha})`);
 
-                        ctx.beginPath();
-                        ctx.moveTo(p.x, p.y);
-                        ctx.lineTo(p2.x, p2.y);
-                        ctx.strokeStyle = lineGrad;
-                        ctx.lineWidth = dist < 70 ? 1.2 : 0.8;
-                        ctx.stroke();
+                            ctx.beginPath();
+                            ctx.moveTo(p.sx, p.sy);
+                            ctx.lineTo(p2.sx, p2.sy);
+                            ctx.strokeStyle = lineGrad;
+                            ctx.lineWidth = d3 < 80 ? 1.2 : 0.8;
+                            ctx.stroke();
+                        }
                     }
                 }
             }
@@ -802,7 +861,45 @@ function setupNavigation() {
    SCROLL REVEAL ANIMATIONS
    ========================================================================== */
 
+/* ==========================================================================
+   3D SCROLL CASCADE & STEP-BY-STEP REVEAL ENGINE
+   ========================================================================== */
+
 function setupRevealAnimations() {
+    // 1. Group cards across ALL pages and assign uniform 3D step-by-step staggered delays
+    const gridContainers = document.querySelectorAll(
+        ".stats-strip, .home-project-links, .home-skills-grid, .project-grid, .focus-grid, .skills-grid, .skills-categories-grid, .timeline, .about-layout, .detail-panel, .about-bento-section, .bento-grid, .contact-layout, .faq-section"
+    );
+
+    gridContainers.forEach((container) => {
+        container.classList.add("perspective-grid");
+        const cards = container.querySelectorAll(
+            ".stat-card, .home-project-card, .project-card, .focus-card, .skill-card, .skill-category, .timeline-item, .info-card, .profile-panel, .contact-card, .contact-form, .bento-card, .about-card, .faq-item"
+        );
+        cards.forEach((card, index) => {
+            if (!card.hasAttribute("data-reveal")) {
+                card.setAttribute("data-reveal", "");
+            }
+            card.classList.add("card-3d-reveal");
+            const delay = Math.min(index * 110, 440);
+            card.style.setProperty("--reveal-delay", `${delay}ms`);
+        });
+    });
+
+    // 2. Cascade Hero copy elements in 3D sequence cleanly without double-nesting
+    const heroCopy = document.querySelector(".hero-copy");
+    if (heroCopy) {
+        heroCopy.removeAttribute("data-reveal");
+        heroCopy.classList.add("hero-3d-cascade");
+        const heroChildren = heroCopy.querySelectorAll(
+            ".status-badge, .hero-title-chromatic, .lead-text, .role-line, .hero-actions"
+        );
+        heroChildren.forEach((child, index) => {
+            child.setAttribute("data-reveal", "");
+            child.style.setProperty("--reveal-delay", `${index * 100 + 50}ms`);
+        });
+    }
+
     const revealItems = document.querySelectorAll("[data-reveal]");
 
     if (!revealItems.length || prefersReducedMotion) {
@@ -816,15 +913,47 @@ function setupRevealAnimations() {
         (entries) => {
             entries.forEach((entry) => {
                 if (!entry.isIntersecting) return;
-                entry.target.classList.add("is-visible");
-                observer.unobserve(entry.target);
+                const target = entry.target;
+                const customDelay = target.style.getPropertyValue("--reveal-delay");
+                if (customDelay) {
+                    target.style.transitionDelay = customDelay;
+                }
+                target.classList.add("is-visible");
+                observer.unobserve(target);
             });
         },
-        { threshold: 0.12, rootMargin: "0px 0px -40px 0px" }
+        { threshold: 0.08, rootMargin: "0px 0px -20px 0px" }
     );
 
     revealItems.forEach((item) => observer.observe(item));
+
+    // Fallback: Ensure elements visible on initial page render trigger immediately
+    setTimeout(() => {
+        revealItems.forEach((item) => {
+            const rect = item.getBoundingClientRect();
+            if (rect.top < window.innerHeight && rect.bottom > 0) {
+                const customDelay = item.style.getPropertyValue("--reveal-delay");
+                if (customDelay) {
+                    item.style.transitionDelay = customDelay;
+                }
+                item.classList.add("is-visible");
+            }
+        });
+    }, 100);
+
+    // 3. Mount 3D scroll physics
+    setupScrollPhysics3D();
 }
+
+/**
+ * 3D Scroll Physics & Velocity Tilt Engine
+ * Imparts real physical momentum and tilt as cards scroll through the viewport
+ */
+function setupScrollPhysics3D() {
+    // Keep cards sticking firmly in place without moving or tilting on scroll
+    document.documentElement.style.setProperty("--scroll-tilt-x", "0deg");
+}
+
 
 /* ==========================================================================
    TYPING ROLES ANIMATION
@@ -912,7 +1041,7 @@ function setupCounters() {
                 observer.unobserve(entry.target);
             });
         },
-        { threshold: 0.5 }
+        { threshold: 0.2 }
     );
 
     counters.forEach((counter) => observer.observe(counter));
@@ -937,6 +1066,12 @@ function setupTabs() {
 
                     if (panel) {
                         panel.hidden = !isActive;
+                        if (isActive) {
+                            panel.querySelectorAll("[data-reveal]").forEach((item) => {
+                                item.style.transitionDelay = "0ms";
+                                item.classList.add("is-visible");
+                            });
+                        }
                     }
                 });
             });
@@ -984,6 +1119,7 @@ function setupProjectFilters() {
                 
                 if (match) {
                     card.hidden = false;
+                    card.style.transitionDelay = "0ms";
                     card.classList.add("is-visible");
                 } else {
                     card.hidden = true;
@@ -1078,6 +1214,23 @@ const CinematicAudio = (() => {
                 gain.connect(ac.destination);
                 osc.start();
                 osc.stop(ac.currentTime + 0.06);
+            } catch (e) {}
+        },
+        playTone(freq = 440, type = "sine", duration = 0.08) {
+            if (!enabled) return;
+            const ac = getAudioContext();
+            if (!ac) return;
+            try {
+                const osc = ac.createOscillator();
+                const gain = ac.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, ac.currentTime);
+                gain.gain.setValueAtTime(0.03, ac.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(ac.destination);
+                osc.start();
+                osc.stop(ac.currentTime + duration + 0.01);
             } catch (e) {}
         },
         playModalOpen() {
@@ -1323,29 +1476,23 @@ function setupClickSparks() {
    ========================================================================== */
 
 function setup3DTilt() {
-    if (prefersReducedMotion || window.innerWidth < 768) return;
-
-    const tiltElements = document.querySelectorAll(".project-card, .home-project-card, .stat-card, .hero-avatar-frame");
+    // Cards stick firmly in place without moving or tilting on hover as requested
+    const tiltElements = document.querySelectorAll(
+        ".project-card, .home-project-card, .stat-card, .hero-avatar-frame, .skill-card, .skill-category, .info-card, .focus-card, .contact-card, .bento-card, .profile-panel, .timeline-item"
+    );
 
     tiltElements.forEach((el) => {
         el.addEventListener("mousemove", (e) => {
             const rect = el.getBoundingClientRect();
             const x = e.clientX - rect.left;
             const y = e.clientY - rect.top;
-            
-            const centerX = rect.width / 2;
-            const centerY = rect.height / 2;
-            
-            const rotateX = ((y - centerY) / centerY) * -6; // max 6 deg
-            const rotateY = ((x - centerX) / centerX) * 6;
-
-            el.style.transform = `perspective(1000px) rotateX(${rotateX.toFixed(2)}deg) rotateY(${rotateY.toFixed(2)}deg) translateY(-4px)`;
             el.style.setProperty("--mouse-x", `${(x / rect.width) * 100}%`);
             el.style.setProperty("--mouse-y", `${(y / rect.height) * 100}%`);
         });
 
         el.addEventListener("mouseleave", () => {
-            el.style.transform = "";
+            el.style.removeProperty("--mouse-x");
+            el.style.removeProperty("--mouse-y");
         });
     });
 }
@@ -1427,6 +1574,16 @@ function setupCommandPalette() {
         { title: "About & Skills", category: "Navigation", icon: "👤", action: () => window.location.href = "about.html" },
         { title: "Projects Hub", category: "Navigation", icon: "📁", action: () => window.location.href = "projects.html" },
         { title: "Contact Developer", category: "Navigation", icon: "✉️", action: () => window.location.href = "contact.html" },
+
+        // Featured Highlights & Engineering Tools
+        { title: "🧠 Interactive CS Algorithm Lab", category: "Featured", icon: "🧠", action: () => {
+            const csLab = document.getElementById("csLab");
+            if (csLab) {
+                csLab.scrollIntoView({ behavior: "smooth" });
+            } else {
+                window.location.href = "projects.html#csLab";
+            }
+        }},
 
         // Resume & Credentials Download
         { title: "Download Resume (PDF)", category: "Actions", icon: "📥", action: () => {
@@ -1713,6 +1870,18 @@ function setupDeveloperTerminal() {
   Download PDF: <a href="Muhammad_Zaheer_Resume.pdf" download="Muhammad_Zaheer_Resume.pdf" class="term-link">📥 Click to Download Resume (PDF)</a>
   Direct Email: <span class="cmd-highlight">mzaheer1070@gmail.com</span> | Phone: +92-302-3185767
                 `);
+                break;
+
+            case "lab":
+            case "algo":
+            case "playground":
+                const csLabEl = document.getElementById("csLab");
+                if (csLabEl) {
+                    csLabEl.scrollIntoView({ behavior: "smooth" });
+                } else {
+                    window.location.href = "projects.html#csLab";
+                }
+                appendLine("Navigating to Interactive CS Algorithm Playground...");
                 break;
 
             case "ai":
@@ -2663,6 +2832,644 @@ Greet visitors warmly and answer questions about Muhammad Zaheer's education (BS
 }
 
 /* ==========================================================================
+   INTERACTIVE CS LAB & ALGORITHM PLAYGROUND
+   ========================================================================== */
+
+function setupInteractiveCSLab() {
+    const labSection = document.getElementById("csLab");
+    if (!labSection) return;
+
+    // Mode tabs switching
+    const tabs = labSection.querySelectorAll("[data-lab-tab]");
+    tabs.forEach(tab => {
+        tab.addEventListener("click", () => {
+            tabs.forEach(t => {
+                const active = t === tab;
+                t.classList.toggle("is-active", active);
+                t.setAttribute("aria-selected", String(active));
+            });
+
+            const targetMode = tab.dataset.labTab;
+            const panels = {
+                sorting: document.getElementById("panelSorting"),
+                pathfinding: document.getElementById("panelPathfinding"),
+                neural: document.getElementById("panelNeural")
+            };
+
+            Object.entries(panels).forEach(([key, panel]) => {
+                if (!panel) return;
+                const matches = key === targetMode;
+                panel.classList.toggle("is-active", matches);
+                panel.hidden = !matches;
+                if (matches && key === "neural" && window.renderNeuralGate) {
+                    window.renderNeuralGate();
+                }
+            });
+
+            if (window.CinematicAudio) CinematicAudio.playClick();
+        });
+    });
+
+    // Sub-systems
+    setupSortingVisualizer();
+    setupPathfindingVisualizer();
+    setupNeuralGateSimulator();
+}
+
+function setupSortingVisualizer() {
+    const container = document.getElementById("sortBarsContainer");
+    const btnRun = document.getElementById("btnRunSort");
+    const btnShuffle = document.getElementById("btnShuffleSort");
+    const selectAlgo = document.getElementById("sortAlgoSelect");
+    const rangeSpeed = document.getElementById("sortSpeedRange");
+    const elComps = document.getElementById("sortComparisons");
+    const elSwaps = document.getElementById("sortSwaps");
+    const elComplexity = document.getElementById("sortComplexity");
+    const elStatus = document.getElementById("sortStatus");
+
+    if (!container || !btnRun || !btnShuffle) return;
+
+    const ARRAY_SIZE = 24;
+    let array = [];
+    let isSorting = false;
+    let comparisons = 0;
+    let swaps = 0;
+
+    function getDelay() {
+        const val = rangeSpeed ? parseInt(rangeSpeed.value, 10) : 45;
+        return Math.max(10, Math.floor(220 - (val * 2)));
+    }
+
+    function sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    function generateArray() {
+        array = [];
+        for (let i = 0; i < ARRAY_SIZE; i++) {
+            array.push(Math.floor(Math.random() * 135) + 15);
+        }
+        comparisons = 0;
+        swaps = 0;
+        updateTelemetry("Ready");
+        renderBars();
+    }
+
+    function renderBars(highlights = {}) {
+        container.innerHTML = "";
+        array.forEach((val, idx) => {
+            const bar = document.createElement("div");
+            bar.className = "sort-bar";
+            bar.style.height = `${(val / 160) * 100}%`;
+            
+            if (highlights.comparing && highlights.comparing.includes(idx)) {
+                bar.classList.add("is-comparing");
+            } else if (highlights.pivot === idx) {
+                bar.classList.add("is-pivot");
+            } else if (highlights.sorted && highlights.sorted.includes(idx)) {
+                bar.classList.add("is-sorted");
+            }
+            container.appendChild(bar);
+        });
+    }
+
+    function updateTelemetry(status) {
+        if (elComps) elComps.textContent = comparisons.toLocaleString();
+        if (elSwaps) elSwaps.textContent = swaps.toLocaleString();
+        if (elStatus) elStatus.textContent = status;
+        if (elComplexity && selectAlgo) {
+            elComplexity.textContent = selectAlgo.value === "quicksort" ? "O(N log N)" : "O(N²)";
+        }
+    }
+
+    async function bubbleSort() {
+        const n = array.length;
+        const sortedIndices = [];
+        for (let i = 0; i < n - 1; i++) {
+            for (let j = 0; j < n - i - 1; j++) {
+                if (!isSorting) return;
+                comparisons++;
+                renderBars({ comparing: [j, j + 1], sorted: sortedIndices });
+                updateTelemetry("Sorting (Bubble Sort)...");
+                if (window.CinematicAudio) {
+                    CinematicAudio.playTone(200 + array[j] * 4, "sine", 0.04);
+                }
+                await sleep(getDelay());
+
+                if (array[j] > array[j + 1]) {
+                    swaps++;
+                    const temp = array[j];
+                    array[j] = array[j + 1];
+                    array[j + 1] = temp;
+                    renderBars({ comparing: [j, j + 1], sorted: sortedIndices });
+                    await sleep(getDelay());
+                }
+            }
+            sortedIndices.push(n - 1 - i);
+        }
+        sortedIndices.push(0);
+        renderBars({ sorted: sortedIndices });
+        updateTelemetry("Sorted Complete! 🎉");
+        if (window.CinematicAudio) CinematicAudio.playChime();
+    }
+
+    async function quickSortHelper(start, end, sortedIndices) {
+        if (start >= end) {
+            if (start >= 0 && start < array.length) sortedIndices.push(start);
+            return;
+        }
+        if (!isSorting) return;
+
+        const pivotIndex = await partition(start, end, sortedIndices);
+        sortedIndices.push(pivotIndex);
+        await quickSortHelper(start, pivotIndex - 1, sortedIndices);
+        await quickSortHelper(pivotIndex + 1, end, sortedIndices);
+    }
+
+    async function partition(start, end, sortedIndices) {
+        const pivotValue = array[end];
+        let pivotIndex = start;
+
+        for (let i = start; i < end; i++) {
+            if (!isSorting) return pivotIndex;
+            comparisons++;
+            renderBars({ comparing: [i, end], pivot: end, sorted: sortedIndices });
+            updateTelemetry("Partitioning (QuickSort)...");
+            if (window.CinematicAudio) {
+                CinematicAudio.playTone(200 + array[i] * 4, "sine", 0.04);
+            }
+            await sleep(getDelay());
+
+            if (array[i] < pivotValue) {
+                swaps++;
+                const temp = array[i];
+                array[i] = array[pivotIndex];
+                array[pivotIndex] = temp;
+                pivotIndex++;
+                renderBars({ comparing: [i, pivotIndex], pivot: end, sorted: sortedIndices });
+                await sleep(getDelay());
+            }
+        }
+
+        swaps++;
+        const temp = array[pivotIndex];
+        array[pivotIndex] = array[end];
+        array[end] = temp;
+        renderBars({ sorted: sortedIndices });
+        await sleep(getDelay());
+
+        return pivotIndex;
+    }
+
+    async function runSort() {
+        if (isSorting) return;
+        isSorting = true;
+        btnRun.disabled = true;
+        btnShuffle.disabled = true;
+        if (selectAlgo) selectAlgo.disabled = true;
+
+        const algo = selectAlgo ? selectAlgo.value : "quicksort";
+        if (algo === "bubblesort") {
+            await bubbleSort();
+        } else {
+            const sortedIndices = [];
+            await quickSortHelper(0, array.length - 1, sortedIndices);
+            renderBars({ sorted: Array.from({ length: array.length }, (_, i) => i) });
+            updateTelemetry("Sorted Complete! 🎉");
+            if (window.CinematicAudio) CinematicAudio.playChime();
+        }
+
+        isSorting = false;
+        btnRun.disabled = false;
+        btnShuffle.disabled = false;
+        if (selectAlgo) selectAlgo.disabled = false;
+    }
+
+    btnRun.addEventListener("click", () => runSort());
+    btnShuffle.addEventListener("click", () => {
+        if (!isSorting) generateArray();
+    });
+
+    if (selectAlgo) {
+        selectAlgo.addEventListener("change", () => {
+            if (elComplexity) {
+                elComplexity.textContent = selectAlgo.value === "quicksort" ? "O(N log N)" : "O(N²)";
+            }
+        });
+    }
+
+    generateArray();
+}
+
+function setupPathfindingVisualizer() {
+    const gridEl = document.getElementById("pathGrid");
+    const btnRun = document.getElementById("btnRunBFS");
+    const btnMaze = document.getElementById("btnMazeBFS");
+    const btnClear = document.getElementById("btnClearBFS");
+    const elExplored = document.getElementById("bfsExplored");
+    const elPathLen = document.getElementById("bfsPathLen");
+    const elStatus = document.getElementById("bfsStatus");
+
+    if (!gridEl || !btnRun) return;
+
+    const COLS = 14;
+    const ROWS = 9;
+    const START_ROW = 1, START_COL = 1;
+    const END_ROW = 7, END_COL = 12;
+
+    let isRunning = false;
+    let isMouseDown = false;
+    let grid = [];
+
+    function initGrid() {
+        grid = [];
+        gridEl.innerHTML = "";
+
+        for (let r = 0; r < ROWS; r++) {
+            grid[r] = [];
+            for (let c = 0; c < COLS; c++) {
+                const isStart = (r === START_ROW && c === START_COL);
+                const isTarget = (r === END_ROW && c === END_COL);
+
+                const cell = document.createElement("div");
+                cell.className = "path-cell";
+                cell.dataset.row = r;
+                cell.dataset.col = c;
+
+                if (isStart) {
+                    cell.classList.add("is-start");
+                    cell.textContent = "S";
+                } else if (isTarget) {
+                    cell.classList.add("is-target");
+                    cell.textContent = "E";
+                }
+
+                grid[r][c] = {
+                    r, c,
+                    isStart,
+                    isTarget,
+                    isWall: false,
+                    isVisited: false,
+                    parent: null,
+                    element: cell
+                };
+
+                cell.addEventListener("mousedown", (e) => {
+                    e.preventDefault();
+                    if (isRunning) return;
+                    isMouseDown = true;
+                    toggleWall(r, c);
+                });
+
+                cell.addEventListener("mouseenter", () => {
+                    if (isRunning || !isMouseDown) return;
+                    toggleWall(r, c);
+                });
+
+                gridEl.appendChild(cell);
+            }
+        }
+
+        window.addEventListener("mouseup", () => { isMouseDown = false; });
+
+        if (elExplored) elExplored.textContent = "0";
+        if (elPathLen) elPathLen.textContent = "0 steps";
+        if (elStatus) elStatus.textContent = "Ready (Start: S, Goal: E)";
+    }
+
+    function toggleWall(r, c) {
+        const node = grid[r][c];
+        if (node.isStart || node.isTarget) return;
+        node.isWall = !node.isWall;
+        node.element.classList.toggle("is-wall", node.isWall);
+        if (window.CinematicAudio) {
+            CinematicAudio.playTone(node.isWall ? 160 : 320, "triangle", 0.03);
+        }
+    }
+
+    function clearSearchOnly() {
+        for (let r = 0; r < ROWS; r++) {
+            for (let c = 0; c < COLS; c++) {
+                const node = grid[r][c];
+                node.isVisited = false;
+                node.parent = null;
+                node.element.classList.remove("is-visited", "is-path");
+            }
+        }
+        if (elExplored) elExplored.textContent = "0";
+        if (elPathLen) elPathLen.textContent = "0 steps";
+    }
+
+    function clearAll() {
+        if (isRunning) return;
+        for (let r = 0; r < ROWS; r++) {
+            for (let c = 0; c < COLS; c++) {
+                const node = grid[r][c];
+                node.isWall = false;
+                node.isVisited = false;
+                node.parent = null;
+                node.element.classList.remove("is-wall", "is-visited", "is-path");
+            }
+        }
+        if (elExplored) elExplored.textContent = "0";
+        if (elPathLen) elPathLen.textContent = "0 steps";
+        if (elStatus) elStatus.textContent = "Grid reset clean.";
+        if (window.CinematicAudio) CinematicAudio.playClick();
+    }
+
+    function generateRandomMaze() {
+        if (isRunning) return;
+        clearAll();
+        for (let r = 0; r < ROWS; r++) {
+            for (let c = 0; c < COLS; c++) {
+                const node = grid[r][c];
+                if (node.isStart || node.isTarget) continue;
+                if (Math.random() < 0.28) {
+                    node.isWall = true;
+                    node.element.classList.add("is-wall");
+                }
+            }
+        }
+        if (elStatus) elStatus.textContent = "Random maze barriers deployed.";
+        if (window.CinematicAudio) CinematicAudio.playChime();
+    }
+
+    async function runBFS() {
+        if (isRunning) return;
+        isRunning = true;
+        clearSearchOnly();
+        btnRun.disabled = true;
+        if (btnMaze) btnMaze.disabled = true;
+        if (btnClear) btnClear.disabled = true;
+        if (elStatus) elStatus.textContent = "Running Breadth-First Search queue...";
+
+        const queue = [grid[START_ROW][START_COL]];
+        grid[START_ROW][START_COL].isVisited = true;
+        let exploredCount = 0;
+        let targetFound = false;
+        let endNode = null;
+
+        const neighbors = [
+            [-1, 0],
+            [0, 1],
+            [1, 0],
+            [0, -1]
+        ];
+
+        while (queue.length > 0) {
+            const current = queue.shift();
+            exploredCount++;
+            if (elExplored) elExplored.textContent = exploredCount.toString();
+
+            if (current.isTarget) {
+                targetFound = true;
+                endNode = current;
+                break;
+            }
+
+            if (!current.isStart) {
+                current.element.classList.add("is-visited");
+                if (window.CinematicAudio && exploredCount % 3 === 0) {
+                    CinematicAudio.playTone(350 + (exploredCount * 4) % 400, "sine", 0.02);
+                }
+            }
+
+            await new Promise(r => setTimeout(r, 22));
+
+            for (const [dr, dc] of neighbors) {
+                const nr = current.r + dr;
+                const nc = current.c + dc;
+
+                if (nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS) {
+                    const neighbor = grid[nr][nc];
+                    if (!neighbor.isVisited && !neighbor.isWall) {
+                        neighbor.isVisited = true;
+                        neighbor.parent = current;
+                        queue.push(neighbor);
+                    }
+                }
+            }
+        }
+
+        if (targetFound && endNode) {
+            let curr = endNode.parent;
+            let pathSteps = 0;
+            while (curr && !curr.isStart) {
+                curr.element.classList.remove("is-visited");
+                curr.element.classList.add("is-path");
+                curr = curr.parent;
+                pathSteps++;
+                await new Promise(r => setTimeout(r, 35));
+                if (window.CinematicAudio) {
+                    CinematicAudio.playTone(600 + pathSteps * 20, "triangle", 0.04);
+                }
+            }
+            if (elPathLen) elPathLen.textContent = `${pathSteps + 1} steps`;
+            if (elStatus) elStatus.textContent = `Target reached! Shortest path: ${pathSteps + 1} steps.`;
+            if (window.CinematicAudio) CinematicAudio.playChime();
+        } else {
+            if (elStatus) elStatus.textContent = "No path found (Target blocked by walls!).";
+            showToast("Target was unreachable from Start!", "⚠️");
+        }
+
+        isRunning = false;
+        btnRun.disabled = false;
+        if (btnMaze) btnMaze.disabled = false;
+        if (btnClear) btnClear.disabled = false;
+    }
+
+    btnRun.addEventListener("click", () => runBFS());
+    if (btnMaze) btnMaze.addEventListener("click", () => generateRandomMaze());
+    if (btnClear) btnClear.addEventListener("click", () => clearAll());
+
+    initGrid();
+}
+
+function setupNeuralGateSimulator() {
+    const canvas = document.getElementById("neuralCanvas");
+    const gatePills = document.querySelectorAll("#gateTogglePills .gate-pill");
+    const bitX1 = document.getElementById("bitX1");
+    const bitX2 = document.getElementById("bitX2");
+    const elSum = document.getElementById("neuralSum");
+    const elSigmoid = document.getElementById("neuralSigmoid");
+    const elOutput = document.getElementById("neuralOutput");
+
+    if (!canvas || !bitX1 || !bitX2) return;
+
+    let selectedGate = "AND";
+    let x1 = 0;
+    let x2 = 0;
+
+    const GATES = {
+        AND: { w1: 2.2, w2: 2.2, b: -3.4, truth: [0, 0, 0, 1] },
+        OR:  { w1: 2.5, w2: 2.5, b: -1.2, truth: [0, 1, 1, 1] },
+        NAND:{ w1: -2.4, w2: -2.4, b: 3.5, truth: [1, 1, 1, 0] },
+        XOR: { w1: 0, w2: 0, b: 0, isMultiLayer: true, truth: [0, 1, 1, 0] }
+    };
+
+    function sigmoid(z) {
+        return 1 / (1 + Math.exp(-z));
+    }
+
+    function calculate() {
+        const config = GATES[selectedGate];
+        let z = 0;
+        let sig = 0;
+        let output = 0;
+
+        if (config.isMultiLayer) {
+            const h1 = (x1 && x2) ? 0 : 1;
+            const h2 = (x1 || x2) ? 1 : 0;
+            output = (h1 && h2) ? 1 : 0;
+            z = output ? 3.0 : -3.0;
+            sig = output ? 0.95 : 0.05;
+        } else {
+            z = (config.w1 * x1) + (config.w2 * x2) + config.b;
+            sig = sigmoid(z);
+            output = sig >= 0.5 ? 1 : 0;
+        }
+
+        if (elSum) elSum.textContent = `z = ${z.toFixed(2)}`;
+        if (elSigmoid) elSigmoid.textContent = `σ(z) = ${sig.toFixed(2)}`;
+        if (elOutput) {
+            elOutput.textContent = output.toString();
+            elOutput.style.color = output === 1 ? "#10b981" : "#ef4444";
+        }
+
+        renderCanvas();
+    }
+
+    function renderCanvas() {
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return;
+
+        const w = canvas.width;
+        const h = canvas.height;
+        ctx.clearRect(0, 0, w, h);
+
+        const isDark = document.documentElement.dataset.theme !== "light";
+        ctx.fillStyle = isDark ? "#0c1322" : "#f8fafc";
+        ctx.fillRect(0, 0, w, h);
+
+        const padX = 50;
+        const padY = 30;
+        const scaleX = (w - padX * 2);
+        const scaleY = (h - padY * 2);
+
+        function toScreen(px, py) {
+            return {
+                x: padX + px * scaleX,
+                y: (h - padY) - py * scaleY
+            };
+        }
+
+        // Draw Axes
+        ctx.strokeStyle = isDark ? "rgba(255, 255, 255, 0.15)" : "rgba(0, 0, 0, 0.15)";
+        ctx.lineWidth = 1;
+        const orig = toScreen(0, 0);
+        const topY = toScreen(0, 1.25);
+        const rightX = toScreen(1.25, 0);
+
+        ctx.beginPath();
+        ctx.moveTo(orig.x, orig.y);
+        ctx.lineTo(topY.x, topY.y);
+        ctx.moveTo(orig.x, orig.y);
+        ctx.lineTo(rightX.x, rightX.y);
+        ctx.stroke();
+
+        // Draw Decision Boundary Line for single-layer gates
+        const config = GATES[selectedGate];
+        if (!config.isMultiLayer && config.w2 !== 0) {
+            const xA = -0.2;
+            const yA = (-config.w1 * xA - config.b) / config.w2;
+            const xB = 1.3;
+            const yB = (-config.w1 * xB - config.b) / config.w2;
+
+            const ptA = toScreen(xA, yA);
+            const ptB = toScreen(xB, yB);
+
+            ctx.save();
+            ctx.beginPath();
+            ctx.rect(padX - 10, padY - 10, scaleX + 20, scaleY + 20);
+            ctx.clip();
+
+            ctx.strokeStyle = "#06b6d4";
+            ctx.lineWidth = 2.5;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.moveTo(ptA.x, ptA.y);
+            ctx.lineTo(ptB.x, ptB.y);
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        const points = [
+            { x: 0, y: 0, label: "(0,0)", target: config.truth[0] },
+            { x: 0, y: 1, label: "(0,1)", target: config.truth[1] },
+            { x: 1, y: 0, label: "(1,0)", target: config.truth[2] },
+            { x: 1, y: 1, label: "(1,1)", target: config.truth[3] }
+        ];
+
+        points.forEach(pt => {
+            const screenPt = toScreen(pt.x, pt.y);
+            const isCurrent = (pt.x === x1 && pt.y === x2);
+
+            if (isCurrent) {
+                ctx.beginPath();
+                ctx.arc(screenPt.x, screenPt.y, 14, 0, Math.PI * 2);
+                ctx.fillStyle = "rgba(16, 185, 129, 0.25)";
+                ctx.fill();
+                ctx.strokeStyle = "#10b981";
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            }
+
+            ctx.beginPath();
+            ctx.arc(screenPt.x, screenPt.y, 8, 0, Math.PI * 2);
+            ctx.fillStyle = pt.target === 1 ? "#10b981" : (isDark ? "#475569" : "#94a3b8");
+            ctx.fill();
+            ctx.strokeStyle = isDark ? "#0f172a" : "#fff";
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            ctx.font = "10px sans-serif";
+            ctx.fillStyle = isDark ? "#94a3b8" : "#64748b";
+            ctx.textAlign = "center";
+            ctx.fillText(pt.label, screenPt.x, screenPt.y + 19);
+        });
+    }
+
+    gatePills.forEach(pill => {
+        pill.addEventListener("click", () => {
+            gatePills.forEach(p => p.classList.remove("is-active"));
+            pill.classList.add("is-active");
+            selectedGate = pill.dataset.gate || "AND";
+            calculate();
+            if (window.CinematicAudio) CinematicAudio.playClick();
+        });
+    });
+
+    bitX1.addEventListener("click", () => {
+        x1 = x1 === 0 ? 1 : 0;
+        bitX1.textContent = x1.toString();
+        bitX1.classList.toggle("active", x1 === 1);
+        calculate();
+        if (window.CinematicAudio) CinematicAudio.playTone(x1 ? 520 : 260, "sine", 0.05);
+    });
+
+    bitX2.addEventListener("click", () => {
+        x2 = x2 === 0 ? 1 : 0;
+        bitX2.textContent = x2.toString();
+        bitX2.classList.toggle("active", x2 === 1);
+        calculate();
+        if (window.CinematicAudio) CinematicAudio.playTone(x2 ? 580 : 290, "sine", 0.05);
+    });
+
+    window.renderNeuralGate = calculate;
+    calculate();
+}
+
+/* ==========================================================================
    INITIALIZATION
    ========================================================================== */
 
@@ -2687,5 +3494,6 @@ document.addEventListener("DOMContentLoaded", () => {
     setupDeveloperTerminal();
     setupContactForm();
     setupGeminiChatbot();
+    setupInteractiveCSLab();
 });
 

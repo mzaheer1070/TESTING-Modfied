@@ -94,7 +94,7 @@
 <main id="main">
     <!-- Hero Section -->
     <section class="hero">
-        <div class="hero-copy" data-reveal>
+        <div class="hero-copy">
             <div class="status-badge">
                 <span class="status-indicator" aria-hidden="true"></span>
                 <span>Computer Science Student @ NUTECH &bull; Open to Internships</span>
@@ -121,7 +121,7 @@
                 </a>
                 <a class="btn secondary" href="Muhammad_Zaheer_Resume.pdf" download="Muhammad_Zaheer_Resume.pdf" title="Download Muhammad Zaheer's Resume (PDF)">
                     <span>📥</span>
-                    <strong>Download Resume (PDF)</strong>
+                    <strong>Resume (PDF)</strong>
                 </a>
                 <button class="btn secondary" type="button" data-copy-email="mzaheer1070@gmail.com" aria-label="Copy Muhammad Zaheer's email address">
                     📋 Copy Email
@@ -182,7 +182,7 @@
                 <p class="lead-text">Academic foundation and practical experience across systems, machine learning, and modern web architectures.</p>
             </div>
 
-            <div class="home-skills-grid" data-reveal>
+            <div class="home-skills-grid">
                 <div class="skill-card">
                     <div class="skill-card-icon" aria-hidden="true">🐍</div>
                     <strong class="skill-card-title">Python & ML Foundations</strong>
@@ -258,6 +258,155 @@
         </div>
     </section>
 
+    <!-- Interactive CS Lab & Algorithm Playground -->
+    <section class="section cs-lab-section" id="csLab" aria-label="Interactive Computer Science Algorithm Playground">
+        <div class="container">
+            <div class="section-header" data-reveal>
+                <span class="eyebrow">Engineering Lab</span>
+                <h2>Interactive CS Algorithm Playground</h2>
+                <p class="lead-text">
+                    Hands-on algorithmic simulations running live in the browser, demonstrating algorithmic efficiency, spatial traversal, and neural decision logic.
+                </p>
+            </div>
+
+            <div class="cs-lab-card card-3d-reveal" data-reveal>
+                <!-- Mode Switcher Tabs -->
+                <div class="cs-lab-tabs" role="tablist" aria-label="Algorithm Playground Modes">
+                    <button class="cs-lab-tab is-active" type="button" role="tab" aria-selected="true" data-lab-tab="sorting">
+                        <span class="lab-tab-icon">⚡</span>
+                        <span>Sorting Visualizer</span>
+                    </button>
+                    <button class="cs-lab-tab" type="button" role="tab" aria-selected="false" data-lab-tab="pathfinding">
+                        <span class="lab-tab-icon">🗺️</span>
+                        <span>BFS Maze Solver</span>
+                    </button>
+                    <button class="cs-lab-tab" type="button" role="tab" aria-selected="false" data-lab-tab="neural">
+                        <span class="lab-tab-icon">🧠</span>
+                        <span>Neural Logic Gate</span>
+                    </button>
+                </div>
+
+                <!-- Tab 1: Sorting Visualizer Panel -->
+                <div class="cs-lab-panel is-active" id="panelSorting" role="tabpanel">
+                    <div class="lab-controls-bar">
+                        <div class="lab-control-group">
+                            <label for="sortAlgoSelect">Algorithm:</label>
+                            <select id="sortAlgoSelect" class="lab-select">
+                                <option value="quicksort">QuickSort (O(N log N))</option>
+                                <option value="bubblesort">Bubble Sort (O(N²))</option>
+                            </select>
+                        </div>
+                        <div class="lab-control-group">
+                            <label for="sortSpeedRange">Speed:</label>
+                            <input type="range" id="sortSpeedRange" min="5" max="100" value="45" class="lab-slider" aria-label="Sorting animation speed">
+                        </div>
+                        <div class="lab-actions-group">
+                            <button class="btn primary btn-sm" id="btnRunSort" type="button">▶ Run Sorting</button>
+                            <button class="btn secondary btn-sm" id="btnShuffleSort" type="button">🎲 Shuffle Array</button>
+                        </div>
+                    </div>
+
+                    <div class="sort-bars-wrapper" id="sortBarsWrapper">
+                        <div class="sort-bars-container" id="sortBarsContainer" aria-label="Sorting array visualizer"></div>
+                    </div>
+
+                    <div class="lab-telemetry-strip">
+                        <div class="telemetry-item">
+                            <span class="telemetry-label">Comparisons</span>
+                            <strong class="telemetry-value" id="sortComparisons">0</strong>
+                        </div>
+                        <div class="telemetry-item">
+                            <span class="telemetry-label">Array Swaps</span>
+                            <strong class="telemetry-value" id="sortSwaps">0</strong>
+                        </div>
+                        <div class="telemetry-item">
+                            <span class="telemetry-label">Complexity</span>
+                            <strong class="telemetry-value text-accent" id="sortComplexity">O(N log N)</strong>
+                        </div>
+                        <div class="telemetry-item">
+                            <span class="telemetry-label">Engine Status</span>
+                            <strong class="telemetry-value" id="sortStatus">Ready</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab 2: BFS Pathfinding Panel -->
+                <div class="cs-lab-panel" id="panelPathfinding" role="tabpanel" hidden>
+                    <div class="lab-controls-bar">
+                        <div class="lab-tip">Click/drag on cells to toggle wall obstacles, or generate a maze:</div>
+                        <div class="lab-actions-group">
+                            <button class="btn primary btn-sm" id="btnRunBFS" type="button">🔍 Run BFS Solver</button>
+                            <button class="btn secondary btn-sm" id="btnMazeBFS" type="button">🧱 Random Maze</button>
+                            <button class="btn secondary btn-sm" id="btnClearBFS" type="button">🧹 Clear Grid</button>
+                        </div>
+                    </div>
+
+                    <div class="grid-path-wrapper">
+                        <div class="path-grid" id="pathGrid" aria-label="Interactive 2D Pathfinding Grid"></div>
+                    </div>
+
+                    <div class="lab-telemetry-strip">
+                        <div class="telemetry-item">
+                            <span class="telemetry-label">Nodes Explored</span>
+                            <strong class="telemetry-value" id="bfsExplored">0</strong>
+                        </div>
+                        <div class="telemetry-item">
+                            <span class="telemetry-label">Shortest Path</span>
+                            <strong class="telemetry-value" id="bfsPathLen">0 steps</strong>
+                        </div>
+                        <div class="telemetry-item">
+                            <span class="telemetry-label">Traversal Mode</span>
+                            <strong class="telemetry-value text-accent">Breadth-First Search (BFS)</strong>
+                        </div>
+                        <div class="telemetry-item">
+                            <span class="telemetry-label">Grid Status</span>
+                            <strong class="telemetry-value" id="bfsStatus">Ready (Start: S, Goal: E)</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab 3: Neural Logic Gate Panel -->
+                <div class="cs-lab-panel" id="panelNeural" role="tabpanel" hidden>
+                    <div class="neural-layout">
+                        <div class="neural-inputs-col">
+                            <div class="neural-control-box">
+                                <label class="lab-label">Target Logic Gate:</label>
+                                <div class="gate-toggle-pills" id="gateTogglePills">
+                                    <button type="button" class="gate-pill is-active" data-gate="AND">AND</button>
+                                    <button type="button" class="gate-pill" data-gate="OR">OR</button>
+                                    <button type="button" class="gate-pill" data-gate="NAND">NAND</button>
+                                    <button type="button" class="gate-pill" data-gate="XOR">XOR</button>
+                                </div>
+                            </div>
+
+                            <div class="neural-binary-switches">
+                                <div class="switch-row">
+                                    <span class="switch-label">Input X₁:</span>
+                                    <button type="button" class="bit-btn" id="bitX1" data-val="0">0</button>
+                                </div>
+                                <div class="switch-row">
+                                    <span class="switch-label">Input X₂:</span>
+                                    <button type="button" class="bit-btn" id="bitX2" data-val="0">0</button>
+                                </div>
+                            </div>
+
+                            <div class="neural-math-box">
+                                <div class="math-line">Linear sum: <code id="neuralSum">z = 0.00</code></div>
+                                <div class="math-line">Sigmoid activation: <code id="neuralSigmoid">σ(z) = 0.50</code></div>
+                                <div class="math-output">Perceptron Output: <strong id="neuralOutput" class="gate-result">0</strong></div>
+                            </div>
+                        </div>
+
+                        <div class="neural-viz-col">
+                            <canvas id="neuralCanvas" width="320" height="220" class="neural-canvas" aria-label="Decision boundary canvas"></canvas>
+                            <span class="neural-viz-caption">2D Hyperplane & Decision Boundary</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- Featured Live Apps Section -->
     <section class="section">
         <div class="container">
@@ -267,7 +416,7 @@
                 <p class="lead-text">Each application runs independently on its own dedicated site with live APIs, local persistence, and responsive layouts.</p>
             </div>
 
-            <div class="home-project-links" data-reveal>
+            <div class="home-project-links">
                 <div class="home-project-card">
                     <div class="home-project-card-header">
                         <span class="project-tag">Open-Meteo & AQI</span>

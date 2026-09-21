@@ -773,11 +773,10 @@ h3 {
     box-shadow: var(--shadow-lg);
     overflow: hidden;
     padding: 10px;
-    transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
+    transition: box-shadow var(--transition), border-color var(--transition);
 }
 
 .hero-avatar-frame:hover {
-    transform: translateY(-4px);
     border-color: var(--border-hover);
     box-shadow: var(--shadow-lg), var(--shadow-glow);
 }
@@ -935,7 +934,6 @@ h3 {
 }
 
 .stat-card:hover {
-    transform: translateY(-4px);
     border-color: var(--border-hover);
     box-shadow: var(--shadow-md), 0 0 20px rgba(16, 185, 129, 0.08);
 }
@@ -981,11 +979,10 @@ h3 {
     box-shadow: var(--shadow-sm);
     display: flex;
     flex-direction: column;
-    transition: transform var(--transition), border-color var(--transition), box-shadow var(--transition);
+    transition: border-color var(--transition), box-shadow var(--transition);
 }
 
 .project-card:hover {
-    transform: translateY(-5px);
     border-color: var(--border-hover);
     box-shadow: var(--shadow-lg), 0 0 28px rgba(16, 185, 129, 0.1);
 }
@@ -1019,7 +1016,7 @@ h3 {
 }
 
 .project-card:hover .project-thumb-icon {
-    transform: scale(1.12);
+    transform: scale(1.12) translateZ(16px);
 }
 
 .project-thumb-badge {
@@ -1161,6 +1158,8 @@ h3 {
 }
 
 .home-project-card {
+    position: relative;
+    overflow: hidden;
     display: flex;
     flex-direction: column;
     gap: 10px;
@@ -1169,11 +1168,10 @@ h3 {
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-sm);
-    transition: transform var(--transition), border-color var(--transition), box-shadow var(--transition);
+    transition: border-color var(--transition), box-shadow var(--transition);
 }
 
 .home-project-card:hover {
-    transform: translateY(-4px);
     border-color: var(--primary);
     box-shadow: var(--shadow-md), 0 0 24px rgba(16, 185, 129, 0.12);
 }
@@ -1226,11 +1224,10 @@ h3 {
     display: flex;
     flex-direction: column;
     gap: 14px;
-    transition: transform var(--transition), border-color var(--transition), box-shadow var(--transition);
+    transition: border-color var(--transition), box-shadow var(--transition);
 }
 
 .focus-card:hover {
-    transform: translateY(-4px);
     border-color: var(--border-hover);
     box-shadow: var(--shadow-md);
 }
@@ -1732,11 +1729,10 @@ h3 {
     flex-direction: column;
     gap: 12px;
     box-shadow: var(--shadow-sm);
-    transition: transform var(--transition), border-color var(--transition), box-shadow var(--transition);
+    transition: border-color var(--transition), box-shadow var(--transition);
 }
 
 .about-bento-card:hover {
-    transform: translateY(-4px);
     border-color: var(--primary);
     box-shadow: var(--shadow-md), 0 0 20px rgba(16, 185, 129, 0.1);
 }
@@ -2159,15 +2155,204 @@ input.is-invalid, textarea.is-invalid {
    SCROLL REVEAL ANIMATIONS
    ========================================================================== */
 
+/* ==========================================================================
+   3D SCROLL CASCADE & STEP-BY-STEP REVEAL
+   ========================================================================== */
+.perspective-grid {
+    perspective: 1400px;
+    transform-style: preserve-3d;
+}
+
 .reveal-ready [data-reveal] {
     opacity: 0;
-    transform: translateY(24px);
-    transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    transform: perspective(1000px) translateY(32px);
+    transition: opacity 0.65s cubic-bezier(0.16, 1, 0.3, 1), transform 0.75s cubic-bezier(0.16, 1, 0.3, 1), filter 0.65s ease;
+    will-change: opacity, transform;
 }
 
 .reveal-ready [data-reveal].is-visible {
     opacity: 1;
+    transform: perspective(1000px) translateY(0);
+}
+
+/* 3D Card Cascade: Cards pop into view step-by-step from depth */
+.reveal-ready .card-3d-reveal[data-reveal],
+.reveal-ready .stat-card[data-reveal],
+.reveal-ready .project-card[data-reveal],
+.reveal-ready .home-project-card[data-reveal],
+.reveal-ready .focus-card[data-reveal],
+.reveal-ready .skill-card[data-reveal],
+.reveal-ready .skill-category[data-reveal],
+.reveal-ready .timeline-item[data-reveal],
+.reveal-ready .info-card[data-reveal],
+.reveal-ready .profile-panel[data-reveal],
+.reveal-ready .contact-card[data-reveal],
+.reveal-ready .contact-form[data-reveal],
+.reveal-ready .bento-card[data-reveal],
+.reveal-ready .about-card[data-reveal],
+.reveal-ready .faq-item[data-reveal] {
+    opacity: 0;
+    transform: perspective(1200px) translate3d(0, 46px, -65px) rotateX(12deg) scale(0.95);
+    filter: blur(4px);
+    backface-visibility: hidden;
+    transition: 
+        opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+        transform 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+        filter 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+        box-shadow 0.35s ease,
+        border-color 0.35s ease;
+    will-change: opacity, transform, filter;
+}
+
+.reveal-ready .card-3d-reveal[data-reveal].is-visible,
+.reveal-ready .stat-card[data-reveal].is-visible,
+.reveal-ready .project-card[data-reveal].is-visible,
+.reveal-ready .home-project-card[data-reveal].is-visible,
+.reveal-ready .focus-card[data-reveal].is-visible,
+.reveal-ready .skill-card[data-reveal].is-visible,
+.reveal-ready .skill-category[data-reveal].is-visible,
+.reveal-ready .timeline-item[data-reveal].is-visible,
+.reveal-ready .info-card[data-reveal].is-visible,
+.reveal-ready .profile-panel[data-reveal].is-visible,
+.reveal-ready .contact-card[data-reveal].is-visible,
+.reveal-ready .contact-form[data-reveal].is-visible,
+.reveal-ready .bento-card[data-reveal].is-visible,
+.reveal-ready .about-card[data-reveal].is-visible,
+.reveal-ready .faq-item[data-reveal].is-visible {
+    opacity: 1;
+    transform: none;
+    filter: blur(0);
+}
+
+/* Card Hover: stick firmly in place without moving or tilting */
+.reveal-ready .card-3d-reveal.is-visible:hover,
+.reveal-ready .stat-card.is-visible:hover,
+.reveal-ready .project-card.is-visible:hover,
+.reveal-ready .home-project-card.is-visible:hover,
+.reveal-ready .focus-card.is-visible:hover,
+.reveal-ready .skill-card.is-visible:hover,
+.reveal-ready .skill-category.is-visible:hover,
+.reveal-ready .info-card.is-visible:hover,
+.reveal-ready .contact-card.is-visible:hover,
+.reveal-ready .bento-card.is-visible:hover {
+    transform: none;
+}
+
+/* ==========================================================================
+   HOMEPAGE SCROLL-TRIGGERED CARD ENGAGEMENT EFFECTS
+   ========================================================================== */
+
+/* Top glowing accent line activates on scroll reveal */
+.reveal-ready .skill-card::before,
+.reveal-ready .home-project-card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent 0%, rgba(16, 185, 129, 0.8) 50%, transparent 100%);
+    opacity: 0;
+    transform: scaleX(0.15);
+    transition: opacity 0.6s ease, transform 0.75s cubic-bezier(0.16, 1, 0.3, 1);
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    pointer-events: none;
+}
+
+.reveal-ready .skill-card.is-visible::before,
+.reveal-ready .home-project-card.is-visible::before {
+    opacity: 1;
+    transform: scaleX(1);
+    transition-delay: calc(var(--reveal-delay, 0ms) + 180ms);
+}
+
+/* Skill card icon spring pop upon entering viewport */
+.reveal-ready .skill-card .skill-card-icon {
+    transform: scale(0.75);
+    opacity: 0.6;
+    transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.5s ease;
+    will-change: transform, opacity;
+}
+
+.reveal-ready .skill-card.is-visible .skill-card-icon {
+    transform: scale(1);
+    opacity: 1;
+    transition-delay: calc(var(--reveal-delay, 0ms) + 120ms);
+}
+
+/* Skill pills micro-stagger on scroll reveal */
+.reveal-ready .skill-card .skill-pill {
+    opacity: 0;
+    transform: translateY(6px);
+    transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: opacity, transform;
+}
+
+.reveal-ready .skill-card.is-visible .skill-pill {
+    opacity: 1;
     transform: translateY(0);
+}
+
+.reveal-ready .skill-card.is-visible .skill-pill:nth-child(1) { transition-delay: calc(var(--reveal-delay, 0ms) + 140ms); }
+.reveal-ready .skill-card.is-visible .skill-pill:nth-child(2) { transition-delay: calc(var(--reveal-delay, 0ms) + 210ms); }
+.reveal-ready .skill-card.is-visible .skill-pill:nth-child(3) { transition-delay: calc(var(--reveal-delay, 0ms) + 280ms); }
+.reveal-ready .skill-card.is-visible .skill-pill:nth-child(4) { transition-delay: calc(var(--reveal-delay, 0ms) + 350ms); }
+
+/* Project card micro-elements scroll trigger */
+.reveal-ready .home-project-card .project-tag {
+    opacity: 0;
+    transform: translateY(-4px);
+    transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.reveal-ready .home-project-card.is-visible .project-tag {
+    opacity: 1;
+    transform: translateY(0);
+    transition-delay: calc(var(--reveal-delay, 0ms) + 140ms);
+}
+
+.reveal-ready .home-project-card .card-actions-row {
+    opacity: 0;
+    transform: translateY(6px);
+    transition: opacity 0.45s ease, transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.reveal-ready .home-project-card.is-visible .card-actions-row {
+    opacity: 1;
+    transform: translateY(0);
+    transition-delay: calc(var(--reveal-delay, 0ms) + 200ms);
+}
+
+/* Subtle scroll activation pulse glow */
+.reveal-ready .home-project-card.is-visible,
+.reveal-ready .skill-card.is-visible {
+    animation: cardRevealAura 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation-delay: var(--reveal-delay, 0ms);
+}
+
+@keyframes cardRevealAura {
+    0% {
+        box-shadow: var(--shadow-sm), 0 0 0 rgba(16, 185, 129, 0);
+    }
+    40% {
+        box-shadow: var(--shadow-md), 0 0 24px rgba(16, 185, 129, 0.16);
+    }
+    100% {
+        box-shadow: var(--shadow-sm), 0 0 0 rgba(16, 185, 129, 0);
+    }
+}
+
+/* Hero copy 3D cascade */
+.reveal-ready .hero-3d-cascade [data-reveal] {
+    opacity: 0;
+    transform: perspective(1000px) translate3d(0, 24px, -35px) rotateX(8deg);
+    transition: opacity 0.65s cubic-bezier(0.16, 1, 0.3, 1), transform 0.75s cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: opacity, transform;
+}
+
+.reveal-ready .hero-3d-cascade [data-reveal].is-visible {
+    opacity: 1;
+    transform: perspective(1000px) translate3d(0, 0, 0) rotateX(0deg);
 }
 
 /* ==========================================================================
@@ -3084,7 +3269,16 @@ body.cinematic-mode .site-header {
     100% { background-position: 100% 50%; }
 }
 
-/* 4. Holographic Avatar Frame & HUD Telemetry */
+/* 4. 3D Floating Avatar Frame & Optical HUD Telemetry */
+@keyframes heroFloat3D {
+    0%, 100% {
+        transform: translateY(0px) rotateX(0deg) rotateY(0deg);
+    }
+    50% {
+        transform: translateY(-8px) rotateX(1.8deg) rotateY(-1.2deg);
+    }
+}
+
 .hero-avatar-frame {
     position: relative;
     border-radius: var(--radius-lg);
@@ -3093,11 +3287,15 @@ body.cinematic-mode .site-header {
     border: 1px solid var(--border);
     box-shadow: var(--shadow-lg), 0 0 35px rgba(16, 185, 129, 0.15);
     overflow: hidden;
-    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease;
+    transform-style: preserve-3d;
+    animation: heroFloat3D 7s ease-in-out infinite;
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease, border-color 0.3s ease;
 }
 
 .hero-avatar-frame:hover {
+    animation-play-state: paused;
     box-shadow: var(--shadow-lg), 0 0 45px rgba(16, 185, 129, 0.3);
+    border-color: rgba(16, 185, 129, 0.4);
 }
 
 .hero-avatar-frame img {
@@ -3107,14 +3305,16 @@ body.cinematic-mode .site-header {
     object-fit: cover;
     display: block;
     filter: brightness(0.96) contrast(1.04);
-    transition: filter 0.3s ease;
+    transform: translateZ(8px);
+    transition: filter 0.3s ease, transform 0.35s ease;
 }
 
 .hero-avatar-frame:hover img {
     filter: brightness(1.02) contrast(1.06);
+    transform: translateZ(14px) scale(1.02);
 }
 
-/* Optical HUD Corners */
+/* Optical HUD Corners with depth pop */
 .hud-corner {
     position: absolute;
     width: 14px;
@@ -3123,6 +3323,19 @@ body.cinematic-mode .site-header {
     pointer-events: none;
     z-index: 5;
     opacity: 0.8;
+    transform: translateZ(20px);
+    transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.hero-avatar-frame:hover .hud-corner {
+    opacity: 1;
+    transform: translateZ(26px) scale(1.12);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .hero-avatar-frame {
+        animation: none;
+    }
 }
 
 .hud-corner-tl { top: 12px; left: 12px; border-right: none; border-bottom: none; }
@@ -3216,18 +3429,58 @@ body.cinematic-mode .site-header {
     box-shadow: 0 0 14px rgba(16, 185, 129, 0.2);
 }
 
-/* 6. Dynamic Specular Spotlight on Cards */
+/* 6. Dynamic Specular Spotlight & 3D Glass Depth on Cards */
 .project-card,
 .home-project-card,
 .stat-card,
-.info-card {
+.info-card,
+.skill-card {
     position: relative;
-    background: radial-gradient(600px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(16, 185, 129, 0.1), transparent 45%), var(--surface);
+    transform-style: preserve-3d;
+    background: radial-gradient(500px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(16, 185, 129, 0.08), transparent 50%), var(--surface);
     transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
 }
 
+.project-card::after,
+.home-project-card::after,
+.stat-card::after,
+.skill-card::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: radial-gradient(
+        350px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+        rgba(255, 255, 255, 0.1),
+        transparent 65%
+    );
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    z-index: 2;
+}
+
+[data-theme="light"] .project-card::after,
+[data-theme="light"] .home-project-card::after,
+[data-theme="light"] .stat-card::after,
+[data-theme="light"] .skill-card::after {
+    background: radial-gradient(
+        350px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+        rgba(16, 185, 129, 0.12),
+        transparent 65%
+    );
+}
+
+.project-card:hover::after,
+.home-project-card:hover::after,
+.stat-card:hover::after,
+.skill-card:hover::after {
+    opacity: 1;
+}
+
 .project-card:hover,
-.home-project-card:hover {
+.home-project-card:hover,
+.skill-card:hover {
     border-color: rgba(16, 185, 129, 0.4);
     box-shadow: var(--shadow-lg), 0 0 30px rgba(16, 185, 129, 0.18);
 }
@@ -4543,6 +4796,7 @@ body.cinematic-mode .site-header {
 
 .skill-card {
     position: relative;
+    overflow: hidden;
     display: flex;
     flex-direction: column;
     gap: 12px;
@@ -4551,11 +4805,10 @@ body.cinematic-mode .site-header {
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-sm);
-    transition: transform var(--transition), border-color var(--transition), box-shadow var(--transition);
+    transition: border-color var(--transition), box-shadow var(--transition);
 }
 
 .skill-card:hover {
-    transform: translateY(-4px);
     border-color: var(--primary);
     box-shadow: var(--shadow-md), 0 0 20px rgba(16, 185, 129, 0.12);
 }
@@ -4657,5 +4910,459 @@ body.cinematic-mode .site-header {
     background: var(--surface-hover);
     transform: translateY(-2px);
 }
+
+/* ==========================================================================
+   INTERACTIVE CS LAB & ALGORITHM PLAYGROUND
+   ========================================================================== */
+
+.cs-lab-section {
+    padding-top: 20px;
+}
+
+.cs-lab-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg, 16px);
+    padding: 24px;
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.25);
+}
+
+.cs-lab-tabs {
+    display: flex;
+    gap: 8px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 14px;
+    margin-bottom: 20px;
+    overflow-x: auto;
+}
+
+.cs-lab-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: var(--radius-full, 9999px);
+    background: var(--surface-subtle, rgba(255, 255, 255, 0.03));
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    font-size: 0.88rem;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cs-lab-tab:hover {
+    color: var(--text);
+    background: var(--surface-hover);
+    border-color: rgba(16, 185, 129, 0.4);
+}
+
+.cs-lab-tab.is-active {
+    color: #10b981;
+    background: rgba(16, 185, 129, 0.12);
+    border-color: #10b981;
+    box-shadow: 0 0 12px rgba(16, 185, 129, 0.2);
+}
+
+[data-theme="light"] .cs-lab-tab.is-active {
+    color: #047857;
+    background: rgba(16, 185, 129, 0.15);
+    border-color: #059669;
+}
+
+.cs-lab-panel {
+    display: none;
+    animation: fadeInPanel 0.3s ease;
+}
+
+.cs-lab-panel.is-active {
+    display: block;
+}
+
+@keyframes fadeInPanel {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.lab-controls-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    margin-bottom: 18px;
+    padding: 12px 16px;
+    background: var(--surface-subtle, rgba(255, 255, 255, 0.02));
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+}
+
+.lab-control-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.lab-select {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 6px 10px;
+    border-radius: var(--radius-sm);
+    font-size: 0.85rem;
+    outline: none;
+}
+
+.lab-slider {
+    accent-color: #10b981;
+    cursor: pointer;
+}
+
+.lab-actions-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.btn-sm {
+    padding: 6px 12px !important;
+    font-size: 0.82rem !important;
+}
+
+.lab-tip {
+    font-size: 0.84rem;
+    color: var(--text-muted);
+}
+
+/* Sorting Visualizer Bars */
+.sort-bars-wrapper {
+    background: rgba(10, 15, 29, 0.4);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 24px 16px 8px 16px;
+    height: 200px;
+    display: flex;
+    align-items: flex-end;
+    margin-bottom: 16px;
+}
+
+[data-theme="light"] .sort-bars-wrapper {
+    background: rgba(240, 244, 248, 0.6);
+}
+
+.sort-bars-container {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-around;
+    width: 100%;
+    height: 100%;
+    gap: 4px;
+}
+
+.sort-bar {
+    flex: 1;
+    min-width: 4px;
+    max-width: 24px;
+    border-radius: 4px 4px 0 0;
+    background: linear-gradient(180deg, #10b981 0%, #059669 100%);
+    transition: height 0.15s ease, background-color 0.15s ease;
+}
+
+.sort-bar.is-comparing {
+    background: linear-gradient(180deg, #f59e0b 0%, #d97706 100%) !important;
+    box-shadow: 0 0 10px rgba(245, 158, 11, 0.6);
+}
+
+.sort-bar.is-pivot {
+    background: linear-gradient(180deg, #8b5cf6 0%, #6d28d9 100%) !important;
+    box-shadow: 0 0 10px rgba(139, 92, 246, 0.6);
+}
+
+.sort-bar.is-sorted {
+    background: linear-gradient(180deg, #06b6d4 0%, #0891b2 100%) !important;
+}
+
+/* 2D Pathfinding Grid */
+.grid-path-wrapper {
+    background: rgba(10, 15, 29, 0.4);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    display: flex;
+    justify-content: center;
+    margin-bottom: 16px;
+    overflow-x: auto;
+}
+
+[data-theme="light"] .grid-path-wrapper {
+    background: rgba(240, 244, 248, 0.6);
+}
+
+.path-grid {
+    display: grid;
+    grid-template-columns: repeat(14, 28px);
+    grid-template-rows: repeat(9, 28px);
+    gap: 3px;
+    user-select: none;
+}
+
+@media (max-width: 600px) {
+    .path-grid {
+        grid-template-columns: repeat(14, 20px);
+        grid-template-rows: repeat(9, 20px);
+        gap: 2px;
+    }
+}
+
+.path-cell {
+    width: 100%;
+    height: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.72rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: background-color 0.15s ease, transform 0.15s ease;
+}
+
+.path-cell:hover:not(.is-start):not(.is-target) {
+    background: var(--surface-hover);
+}
+
+.path-cell.is-start {
+    background: #10b981 !important;
+    color: #fff;
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.7);
+}
+
+.path-cell.is-target {
+    background: #ef4444 !important;
+    color: #fff;
+    box-shadow: 0 0 10px rgba(239, 68, 68, 0.7);
+}
+
+.path-cell.is-wall {
+    background: #334155 !important;
+    border-color: #475569;
+    transform: scale(0.92);
+}
+
+[data-theme="light"] .path-cell.is-wall {
+    background: #64748b !important;
+}
+
+.path-cell.is-visited {
+    background: rgba(6, 182, 212, 0.35) !important;
+    border-color: #06b6d4;
+    animation: visitedCellPop 0.25s ease;
+}
+
+.path-cell.is-path {
+    background: #f59e0b !important;
+    border-color: #d97706;
+    color: #fff;
+    box-shadow: 0 0 12px rgba(245, 158, 11, 0.8);
+    transform: scale(1.05);
+    animation: pathCellPulse 0.3s ease;
+}
+
+@keyframes visitedCellPop {
+    0% { transform: scale(0.3); border-radius: 50%; }
+    50% { transform: scale(1.15); }
+    100% { transform: scale(1); border-radius: 4px; }
+}
+
+@keyframes pathCellPulse {
+    0% { transform: scale(0.6); }
+    100% { transform: scale(1.05); }
+}
+
+/* Neural Logic Gate */
+.neural-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+@media (max-width: 680px) {
+    .neural-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+.neural-control-box {
+    margin-bottom: 16px;
+}
+
+.gate-toggle-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 6px;
+}
+
+.gate-pill {
+    padding: 5px 12px;
+    border-radius: var(--radius-full, 9999px);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.gate-pill.is-active {
+    background: rgba(16, 185, 129, 0.16);
+    border-color: #10b981;
+    color: #10b981;
+}
+
+.neural-binary-switches {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.switch-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.switch-label {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.bit-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    border: 2px solid var(--border);
+    color: var(--text-muted);
+    font-size: 1.1rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.18s ease;
+}
+
+.bit-btn.active {
+    background: #10b981;
+    border-color: #10b981;
+    color: #fff;
+    box-shadow: 0 0 12px rgba(16, 185, 129, 0.5);
+}
+
+.neural-math-box {
+    background: var(--surface-subtle, rgba(255, 255, 255, 0.03));
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 14px;
+}
+
+.math-line {
+    font-size: 0.84rem;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+}
+
+.math-line code {
+    color: #06b6d4;
+    font-weight: 700;
+    font-family: monospace;
+}
+
+.math-output {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px dashed var(--border);
+}
+
+.gate-result {
+    font-size: 1.25rem;
+    color: #10b981;
+    margin-left: 4px;
+}
+
+.neural-viz-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(10, 15, 29, 0.4);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 16px;
+}
+
+[data-theme="light"] .neural-viz-col {
+    background: rgba(240, 244, 248, 0.6);
+}
+
+.neural-canvas {
+    max-width: 100%;
+    height: auto;
+    border-radius: 6px;
+}
+
+.neural-viz-caption {
+    font-size: 0.76rem;
+    color: var(--text-muted);
+    margin-top: 8px;
+}
+
+/* Lab Telemetry Strip */
+.lab-telemetry-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+}
+
+.telemetry-item {
+    flex: 1 1 140px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.telemetry-label {
+    font-size: 0.74rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+}
+
+.telemetry-value {
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: var(--text);
+}
+
+.text-accent {
+    color: #10b981 !important;
+}
+
+
+
 
 
