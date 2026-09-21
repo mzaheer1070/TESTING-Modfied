@@ -29,6 +29,10 @@
         <svg class="nav-chevron nav-chevron--left" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"></polyline></svg>
         <span>All projects</span>
     </a>
+    <button class="audio-toggle-btn" id="btnAudioToggle" type="button" aria-pressed="false" title="Toggle audio sonification sound effects">
+        <span id="audioIcon">🔈</span>
+        <span id="audioLabel">Sound FX: OFF</span>
+    </button>
     <a class="back-link" href="../../index.html" data-root-href="index.html">
         <span>Portfolio home</span>
         <svg class="nav-chevron nav-chevron--right" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"></polyline></svg>
@@ -40,7 +44,7 @@
         <span class="hero-tag">Interactive CS Simulation Suite</span>
         <h1>CS Algorithm Playground & VS Race</h1>
         <p class="hero-subtitle">
-            Hands-on algorithmic simulations running live in the browser. Benchmark algorithmic time complexity in head-to-head battles, step through classic sorting, explore 2D breadth-first search pathfinding, and test perceptron neural decision boundaries.
+            Hands-on algorithmic simulations running live in the browser. Benchmark algorithmic time complexity in head-to-head battles, step through classic sorting with audio sonification, explore heuristic A* and BFS pathfinding, and visualize linear vs binary search.
         </p>
     </div>
 
@@ -54,9 +58,13 @@
             <span class="tab-icon">⚡</span>
             <span>Sorting Visualizer</span>
         </button>
+        <button class="arena-tab" type="button" role="tab" aria-selected="false" data-tab="search">
+            <span class="tab-icon">🔎</span>
+            <span>Binary vs Linear Search</span>
+        </button>
         <button class="arena-tab" type="button" role="tab" aria-selected="false" data-tab="pathfinding">
             <span class="tab-icon">🗺️</span>
-            <span>BFS Maze Solver</span>
+            <span>Maze & Pathfinding</span>
         </button>
         <button class="arena-tab" type="button" role="tab" aria-selected="false" data-tab="neural">
             <span class="tab-icon">🧠</span>
@@ -69,7 +77,7 @@
         <div class="panel-header">
             <div>
                 <h2>⚔️ Head-to-Head Algorithm Race</h2>
-                <p>Pit two algorithms against each other on the exact same randomized dataset to visually experience the difference between $O(N \log N)$ and $O(N^2)$.</p>
+                <p>Pit two algorithms against each other on the exact same dataset to visually benchmark time complexity differences between $O(N \log N)$, $O(N^{1.3})$, and $O(N^2)$.</p>
             </div>
         </div>
 
@@ -80,6 +88,9 @@
                     <select id="vsAlgoLeft" class="form-select">
                         <option value="quicksort" selected>QuickSort (O(N log N))</option>
                         <option value="mergesort">MergeSort (O(N log N))</option>
+                        <option value="heapsort">HeapSort (O(N log N))</option>
+                        <option value="shellsort">Shell Sort (O(N^1.3))</option>
+                        <option value="radixsort">Radix Sort (LSD) (O(N·K))</option>
                     </select>
                 </div>
                 <div class="vs-badge-pill" aria-hidden="true">VS</div>
@@ -88,11 +99,27 @@
                     <select id="vsAlgoRight" class="form-select">
                         <option value="bubblesort" selected>Bubble Sort (O(N²))</option>
                         <option value="selectionsort">Selection Sort (O(N²))</option>
+                        <option value="insertionsort">Insertion Sort (O(N²))</option>
+                        <option value="heapsort">HeapSort (O(N log N))</option>
+                        <option value="shellsort">Shell Sort (O(N^1.3))</option>
+                        <option value="quicksort">QuickSort (O(N log N))</option>
                     </select>
                 </div>
                 <div class="control-group slider-group">
-                    <label for="vsSpeed">Speed:</label>
-                    <input type="range" id="vsSpeed" min="10" max="100" value="65" class="form-range" aria-label="Race Animation Speed">
+                    <div class="speed-label-wrap">
+                        <label for="vsSpeed">Speed:</label>
+                        <span id="vsSpeedLabel" class="speed-val-badge">⚡ Fast (70%)</span>
+                    </div>
+                    <input type="range" id="vsSpeed" min="1" max="100" value="70" class="form-range" aria-label="Race Animation Speed">
+                </div>
+                <div class="preset-group">
+                    <label>Preset:</label>
+                    <div class="preset-pills" id="vsPresetPills">
+                        <button type="button" class="preset-pill is-active" data-preset="random">🎲 Random</button>
+                        <button type="button" class="preset-pill" data-preset="reversed">📉 Reversed</button>
+                        <button type="button" class="preset-pill" data-preset="nearly-sorted">📈 Nearly Sorted</button>
+                        <button type="button" class="preset-pill" data-preset="mountain">🗻 Mountain</button>
+                    </div>
                 </div>
                 <div class="actions-group">
                     <button class="btn btn-primary" id="btnRunVsRace" type="button">⚔️ Run VS Race</button>
@@ -107,6 +134,7 @@
                 <div class="fighter-header">
                     <span class="fighter-tag fighter-tag-a">Contestant A</span>
                     <strong class="fighter-title" id="vsNameA">QuickSort</strong>
+                    <span class="fighter-winner-badge" id="vsWinnerA">🏆 WINNER</span>
                     <span class="fighter-timer" id="vsTimerA">-- ms</span>
                 </div>
                 <div class="bars-wrapper">
@@ -123,6 +151,7 @@
                 <div class="fighter-header">
                     <span class="fighter-tag fighter-tag-b">Contestant B</span>
                     <strong class="fighter-title" id="vsNameB">Bubble Sort</strong>
+                    <span class="fighter-winner-badge" id="vsWinnerB">🏆 WINNER</span>
                     <span class="fighter-timer" id="vsTimerB">-- ms</span>
                 </div>
                 <div class="bars-wrapper">
@@ -147,7 +176,7 @@
         <div class="panel-header">
             <div>
                 <h2>⚡ Single Sorting Visualizer</h2>
-                <p>Step through individual sorting routines with detailed operation breakdown, complexity analysis, and pivot tracking.</p>
+                <p>Deep-dive into 8 core algorithms with step-by-step playback, real-time comparisons/swaps telemetry, array size tuning, and Big-O breakdown.</p>
             </div>
         </div>
 
@@ -156,18 +185,44 @@
                 <div class="control-group">
                     <label for="sortAlgoSelect">Algorithm:</label>
                     <select id="sortAlgoSelect" class="form-select">
-                        <option value="quicksort">QuickSort (O(N log N))</option>
-                        <option value="bubblesort">Bubble Sort (O(N²))</option>
-                        <option value="selectionsort">Selection Sort (O(N²))</option>
+                        <option value="quicksort">QuickSort (Divide & Conquer)</option>
+                        <option value="mergesort">MergeSort (Stable O(N log N))</option>
+                        <option value="heapsort">HeapSort (Binary Max-Heap)</option>
+                        <option value="shellsort">Shell Sort (Diminishing Gap)</option>
+                        <option value="insertionsort">Insertion Sort (Adaptive O(N) best)</option>
+                        <option value="selectionsort">Selection Sort (Successive Min)</option>
+                        <option value="bubblesort">Bubble Sort (Adjacent Exchange)</option>
+                        <option value="radixsort">Radix Sort (LSD Non-comparison)</option>
                     </select>
                 </div>
                 <div class="control-group slider-group">
-                    <label for="sortSpeedRange">Speed:</label>
-                    <input type="range" id="sortSpeedRange" min="5" max="100" value="50" class="form-range" aria-label="Sorting animation speed">
+                    <div class="speed-label-wrap">
+                        <label for="sortSpeedRange">Speed:</label>
+                        <span id="sortSpeedLabel" class="speed-val-badge">Normal (50%)</span>
+                    </div>
+                    <input type="range" id="sortSpeedRange" min="1" max="100" value="50" class="form-range" aria-label="Sorting animation speed">
+                </div>
+                <div class="control-group slider-group">
+                    <div class="speed-label-wrap">
+                        <label for="sortSizeRange">Elements:</label>
+                        <span id="sortSizeLabel" class="speed-val-badge">32 bars</span>
+                    </div>
+                    <input type="range" id="sortSizeRange" min="16" max="48" value="32" class="form-range" aria-label="Array size">
+                </div>
+                <div class="preset-group">
+                    <label>Order:</label>
+                    <div class="preset-pills" id="sortPresetPills">
+                        <button type="button" class="preset-pill is-active" data-preset="random">Random</button>
+                        <button type="button" class="preset-pill" data-preset="reversed">Reversed</button>
+                        <button type="button" class="preset-pill" data-preset="nearly-sorted">Nearly Sorted</button>
+                        <button type="button" class="preset-pill" data-preset="mountain">Mountain</button>
+                    </div>
                 </div>
                 <div class="actions-group">
-                    <button class="btn btn-primary" id="btnRunSort" type="button">▶ Run Sorting</button>
-                    <button class="btn btn-secondary" id="btnShuffleSort" type="button">🎲 Shuffle Array</button>
+                    <button class="btn btn-primary" id="btnRunSort" type="button">▶ Run</button>
+                    <button class="btn btn-secondary" id="btnPauseSort" type="button" disabled>⏸ Pause</button>
+                    <button class="btn btn-secondary" id="btnStepSort" type="button" title="Step one operation forward">⏭ Step</button>
+                    <button class="btn btn-secondary" id="btnShuffleSort" type="button">🎲 Shuffle</button>
                 </div>
             </div>
         </div>
@@ -186,7 +241,7 @@
                 <strong class="telemetry-val" id="sortSwaps">0</strong>
             </div>
             <div class="telemetry-box">
-                <span class="telemetry-label">Complexity</span>
+                <span class="telemetry-label">Time Complexity</span>
                 <strong class="telemetry-val text-accent" id="sortComplexity">O(N log N)</strong>
             </div>
             <div class="telemetry-box">
@@ -194,23 +249,158 @@
                 <strong class="telemetry-val" id="sortStatus">Ready</strong>
             </div>
         </div>
+
+        <!-- Algorithm Info Card -->
+        <div class="algo-info-card" id="algoInfoCard">
+            <h3 class="algo-info-title">
+                <span id="algoInfoName">QuickSort</span> &bull; <span class="text-accent" id="algoInfoParadigm">Divide & Conquer</span>
+            </h3>
+            <div class="complexity-grid">
+                <div class="complexity-item">
+                    <span class="complexity-item-label">Best Time</span>
+                    <strong class="complexity-item-val" id="algoBestTime">Ω(N log N)</strong>
+                </div>
+                <div class="complexity-item">
+                    <span class="complexity-item-label">Average Time</span>
+                    <strong class="complexity-item-val text-accent" id="algoAvgTime">Θ(N log N)</strong>
+                </div>
+                <div class="complexity-item">
+                    <span class="complexity-item-label">Worst Time</span>
+                    <strong class="complexity-item-val" id="algoWorstTime">O(N²)</strong>
+                </div>
+                <div class="complexity-item">
+                    <span class="complexity-item-label">Space</span>
+                    <strong class="complexity-item-val" id="algoSpace">O(log N)</strong>
+                </div>
+                <div class="complexity-item">
+                    <span class="complexity-item-label">Stable?</span>
+                    <strong class="complexity-item-val" id="algoStable">No</strong>
+                </div>
+            </div>
+            <p class="algo-info-desc" id="algoInfoDesc">
+                Picks an element as pivot and partitions the array around the picked pivot by placing elements smaller than pivot before it and larger after it.
+            </p>
+        </div>
     </section>
 
-    <!-- Mode 3: BFS Maze Solver & Pathfinding -->
-    <section class="arena-panel" id="panelPathfinding" role="tabpanel" hidden>
+    <!-- Mode 3: Binary vs Linear Search Duel (NEW) -->
+    <section class="arena-panel" id="panelSearch" role="tabpanel" hidden>
         <div class="panel-header">
             <div>
-                <h2>🗺️ 2D Breadth-First Search (BFS) Pathfinding</h2>
-                <p>Click or drag on cells to toggle obstacles, or generate a maze. BFS guarantees the mathematically shortest path.</p>
+                <h2>🔎 Binary Search ($O(\log N)$) vs Linear Search ($O(N)$)</h2>
+                <p>Observe how Binary Search cuts the search space in half with each comparison, finding elements in logarithmic time versus brute-force linear scanning.</p>
             </div>
         </div>
 
         <div class="controls-card">
             <div class="controls-row">
-                <span class="legend-note"><span class="node-s">S</span> Start &nbsp;·&nbsp; <span class="node-e">E</span> Target &nbsp;·&nbsp; Drag to place walls</span>
+                <div class="control-group">
+                    <label for="searchTargetVal">Target Value:</label>
+                    <input type="number" id="searchTargetVal" class="form-select" style="width: 90px;" min="1" max="100" value="48" aria-label="Search target value">
+                </div>
+                <div class="control-group slider-group">
+                    <div class="speed-label-wrap">
+                        <label for="searchSpeed">Speed:</label>
+                        <span id="searchSpeedLabel" class="speed-val-badge">Fast (65%)</span>
+                    </div>
+                    <input type="range" id="searchSpeed" min="1" max="100" value="65" class="form-range" aria-label="Search Animation Speed">
+                </div>
                 <div class="actions-group">
-                    <button class="btn btn-primary" id="btnRunBFS" type="button">🔍 Run BFS Solver</button>
-                    <button class="btn btn-secondary" id="btnMazeBFS" type="button">🧱 Random Maze</button>
+                    <button class="btn btn-primary" id="btnRunSearch" type="button">🔎 Run Search Duel</button>
+                    <button class="btn btn-secondary" id="btnRandomTarget" type="button">🎯 Random Target</button>
+                    <button class="btn btn-secondary" id="btnNewSearchArray" type="button">🎲 New Array</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="search-duel-grid">
+            <!-- Linear Lane -->
+            <div class="search-lane-card" id="linearLaneCard">
+                <div class="search-lane-header">
+                    <strong class="search-lane-title">
+                        <span>Linear Search</span>
+                        <span class="fighter-tag fighter-tag-b">O(N) Sequential</span>
+                    </strong>
+                    <div class="fighter-timer" id="linearTimer">Steps: 0 &bull; -- ms</div>
+                </div>
+                <div class="search-track-wrapper">
+                    <div class="search-array-track" id="linearArrayTrack" aria-label="Linear search visualization track"></div>
+                    <div class="search-scroll-hint">
+                        <span>⇄ Scroll / drag bar below to browse array</span>
+                        <span>32 Elements</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Binary Lane -->
+            <div class="search-lane-card" id="binaryLaneCard">
+                <div class="search-lane-header">
+                    <strong class="search-lane-title">
+                        <span>Binary Search</span>
+                        <span class="fighter-tag fighter-tag-a">O(log N) Divide & Conquer</span>
+                    </strong>
+                    <div class="fighter-timer" id="binaryTimer">Steps: 0 &bull; -- ms</div>
+                </div>
+                <div class="search-pointer-row">
+                    <span class="search-pointer-badge pointer-low" id="ptrLow">Low: --</span>
+                    <span class="search-pointer-badge pointer-mid" id="ptrMid">Mid: --</span>
+                    <span class="search-pointer-badge pointer-high" id="ptrHigh">High: --</span>
+                </div>
+                <div class="search-track-wrapper">
+                    <div class="search-array-track" id="binaryArrayTrack" aria-label="Binary search visualization track"></div>
+                    <div class="search-scroll-hint">
+                        <span>⇄ Scroll / drag bar below to browse array</span>
+                        <span>32 Elements</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="telemetry-bar">
+            <div class="telemetry-box">
+                <span class="telemetry-label">Linear Checks</span>
+                <strong class="telemetry-val" id="linearChecks">0</strong>
+            </div>
+            <div class="telemetry-box">
+                <span class="telemetry-label">Binary Checks</span>
+                <strong class="telemetry-val text-accent" id="binaryChecks">0</strong>
+            </div>
+            <div class="telemetry-box">
+                <span class="telemetry-label">Efficiency Factor</span>
+                <strong class="telemetry-val text-accent" id="searchRatio">--</strong>
+            </div>
+            <div class="telemetry-box">
+                <span class="telemetry-label">Max Theoretical Steps</span>
+                <strong class="telemetry-val">log₂(32) = 5</strong>
+            </div>
+        </div>
+    </section>
+
+    <!-- Mode 4: BFS & A* Pathfinding -->
+    <section class="arena-panel" id="panelPathfinding" role="tabpanel" hidden>
+        <div class="panel-header">
+            <div>
+                <h2>🗺️ 2D Maze & Pathfinding Visualizer</h2>
+                <p>Compare intelligent heuristic A* Search against Dijkstra and BFS. Click or drag to draw obstacles, or generate complex mazes.</p>
+            </div>
+        </div>
+
+        <div class="controls-card">
+            <div class="controls-row">
+                <div class="control-group">
+                    <label for="pathAlgoSelect">Algorithm:</label>
+                    <select id="pathAlgoSelect" class="form-select">
+                        <option value="astar" selected>A* Search (Heuristic Manhattan)</option>
+                        <option value="dijkstra">Dijkstra's Algorithm (Uniform Cost)</option>
+                        <option value="bfs">Breadth-First Search (FIFO Queue)</option>
+                        <option value="dfs">Depth-First Search (LIFO Stack)</option>
+                    </select>
+                </div>
+                <span class="legend-note"><span class="node-s">S</span> Start &nbsp;·&nbsp; <span class="node-e">E</span> Target</span>
+                <div class="actions-group">
+                    <button class="btn btn-primary" id="btnRunBFS" type="button">🔍 Run Path Solver</button>
+                    <button class="btn btn-secondary" id="btnMazeBFS" type="button">🧱 Random Obstacles</button>
+                    <button class="btn btn-secondary" id="btnRecursiveMaze" type="button">🌀 Labyrinth Maze</button>
                     <button class="btn btn-secondary" id="btnClearBFS" type="button">🧹 Clear Grid</button>
                 </div>
             </div>
@@ -226,12 +416,12 @@
                 <strong class="telemetry-val" id="bfsExplored">0</strong>
             </div>
             <div class="telemetry-box">
-                <span class="telemetry-label">Shortest Path</span>
+                <span class="telemetry-label">Path Length</span>
                 <strong class="telemetry-val" id="bfsPathLen">0 steps</strong>
             </div>
             <div class="telemetry-box">
-                <span class="telemetry-label">Traversal Mode</span>
-                <strong class="telemetry-val text-accent">BFS Queue (FIFO)</strong>
+                <span class="telemetry-label">Algorithm</span>
+                <strong class="telemetry-val text-accent" id="pathModeText">A* Search (Heuristic)</strong>
             </div>
             <div class="telemetry-box">
                 <span class="telemetry-label">Status</span>
@@ -240,7 +430,7 @@
         </div>
     </section>
 
-    <!-- Mode 4: Neural Logic Gate -->
+    <!-- Mode 5: Neural Logic Gate -->
     <section class="arena-panel" id="panelNeural" role="tabpanel" hidden>
         <div class="panel-header">
             <div>

@@ -2101,6 +2101,34 @@ Location    : Islamabad, Pakistan | Availability: Seeking Internship & Project O
         el.addEventListener("click", () => toggleTerminal(false));
     });
 
+    // Wire all elements with [data-open-terminal] (e.g., the CLI Terminal button on about page)
+    document.addEventListener("click", (e) => {
+        const openBtn = e.target.closest("[data-open-terminal]");
+        if (openBtn) {
+            e.preventDefault();
+            toggleTerminal(true);
+        }
+    });
+
+    // Also bind any currently existing buttons directly
+    document.querySelectorAll("[data-open-terminal]").forEach((btn) => {
+        btn.addEventListener("click", (e) => {
+            e.preventDefault();
+            toggleTerminal(true);
+        });
+    });
+
+    // Global keyboard shortcut: Backtick/Tilde toggles terminal (unless user is typing in form)
+    window.addEventListener("keydown", (e) => {
+        if ((e.key === "`" || e.key === "~") && !["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement?.tagName)) {
+            e.preventDefault();
+            toggleTerminal();
+        }
+        if (e.key === "Escape" && terminal.classList.contains("is-open")) {
+            toggleTerminal(false);
+        }
+    });
+
     window.toggleDevTerminal = toggleTerminal;
     window.runTerminalCommand = (cmd) => {
         handleCommand(cmd);
