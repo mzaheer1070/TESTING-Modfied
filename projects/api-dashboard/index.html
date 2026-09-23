@@ -91,8 +91,10 @@
                 <span class="inspector-badge" id="inspector-status-badge">200 OK</span>
                 <span class="inspector-url" id="inspector-url"></span>
                 <span class="inspector-latency" id="inspector-latency"></span>
+                <span class="inspector-size" id="inspector-size">Size: --</span>
             </div>
             <div class="inspector-actions">
+                <button type="button" class="inspector-btn" id="btn-copy-curl">Copy cURL</button>
                 <button type="button" class="inspector-btn" id="btn-copy-response">Copy Body</button>
                 <button type="button" class="inspector-btn" id="btn-close-inspector">Close</button>
             </div>
@@ -132,7 +134,17 @@
                 <button type="button" id="clear-log">Clear</button>
             </div>
         </div>
-        <p class="log-hint">Click any history entry below to inspect its full payload & headers.</p>
+
+        <!-- History Filter & Search Bar -->
+        <div class="history-controls-row">
+            <div class="history-filter-pills" role="group" aria-label="Filter history">
+                <button type="button" class="hist-filter-pill is-active" data-hist-filter="all">All <span id="hist-count-all">(0)</span></button>
+                <button type="button" class="hist-filter-pill" data-hist-filter="ok">2xx Success <span id="hist-count-ok">(0)</span></button>
+                <button type="button" class="hist-filter-pill" data-hist-filter="error">Errors <span id="hist-count-error">(0)</span></button>
+            </div>
+            <p class="log-hint">Click any history entry below to inspect payload or copy cURL.</p>
+        </div>
+
         <ul class="log-list" id="log-list"></ul>
     </section>
 </main>

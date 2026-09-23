@@ -1093,6 +1093,10 @@ function setupSearchDuel() {
     const linearTrack = document.getElementById("linearArrayTrack");
     const binaryTrack = document.getElementById("binaryArrayTrack");
     const targetInput = document.getElementById("searchTargetVal");
+    const arraySizeSelect = document.getElementById("searchArraySize");
+    const linearSizeHint = document.getElementById("linearSizeHint");
+    const binarySizeHint = document.getElementById("binarySizeHint");
+    const searchMaxSteps = document.getElementById("searchMaxSteps");
     const speedRange = document.getElementById("searchSpeed");
     const speedLabel = document.getElementById("searchSpeedLabel");
     const btnRun = document.getElementById("btnRunSearch");
@@ -1109,7 +1113,7 @@ function setupSearchDuel() {
 
     if (!linearTrack || !binaryTrack || !btnRun) return;
 
-    const ARRAY_SIZE = 32;
+    let arraySize = arraySizeSelect ? parseInt(arraySizeSelect.value, 10) : 32;
     let sortedArray = [];
     let targetVal = 48;
     let isSearching = false;
@@ -1127,16 +1131,26 @@ function setupSearchDuel() {
     }
 
     function generateSortedArray() {
+        if (arraySizeSelect) {
+            arraySize = parseInt(arraySizeSelect.value, 10) || 32;
+        }
         sortedArray = [];
         let curr = Math.floor(Math.random() * 4) + 2;
-        for (let i = 0; i < ARRAY_SIZE; i++) {
+        for (let i = 0; i < arraySize; i++) {
             sortedArray.push(curr);
             curr += Math.floor(Math.random() * 4) + 2;
         }
         // Choose a default target that exists
-        const sampleIdx = Math.floor(ARRAY_SIZE * 0.65);
+        const sampleIdx = Math.floor(arraySize * 0.65);
         targetVal = sortedArray[sampleIdx];
         if (targetInput) targetInput.value = targetVal;
+
+        if (linearSizeHint) linearSizeHint.textContent = `${arraySize} Elements`;
+        if (binarySizeHint) binarySizeHint.textContent = `${arraySize} Elements`;
+        if (searchMaxSteps) {
+            const maxLog = Math.ceil(Math.log2(arraySize));
+            searchMaxSteps.textContent = `log₂(${arraySize}) = ${maxLog}`;
+        }
         renderTracks();
     }
 
@@ -1195,6 +1209,13 @@ function setupSearchDuel() {
             if (isSearching) return;
             const randIdx = Math.floor(Math.random() * sortedArray.length);
             setTarget(sortedArray[randIdx]);
+        });
+    }
+
+    if (arraySizeSelect) {
+        arraySizeSelect.addEventListener("change", () => {
+            if (isSearching) return;
+            generateSortedArray();
         });
     }
 

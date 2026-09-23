@@ -59,6 +59,11 @@
             <button type="button" class="city-chip" data-city="Dubai">Dubai</button>
         </div>
 
+        <div class="recent-searches-row" id="recent-searches-row" hidden>
+            <span class="recent-label">Recent:</span>
+            <div class="recent-chips" id="recent-chips"></div>
+        </div>
+
         <div class="unit-toggle" role="group" aria-label="Temperature unit">
             <button type="button" class="unit-btn is-active" data-unit="c">°C</button>
             <button type="button" class="unit-btn" data-unit="f">°F</button>
@@ -69,10 +74,21 @@
             <p class="city-name" id="city-name"></p>
             <p class="temp" id="temp"></p>
             <p class="condition" id="condition"></p>
+            
             <ul class="meta">
-                <li><span>Humidity</span> <strong id="humidity"></strong></li>
-                <li><span>Wind</span> <strong id="wind"></strong></li>
+                <li><span>Feels Like</span> <strong id="feels-like">--</strong></li>
+                <li><span>Humidity</span> <strong id="humidity">--</strong></li>
+                <li><span>Wind</span> <strong id="wind">--</strong></li>
+                <li><span>UV Index</span> <strong id="uv-index">--</strong></li>
+                <li><span>Air Pressure</span> <strong id="pressure">--</strong></li>
+                <li><span>Today's Range</span> <strong id="today-range">--</strong></li>
             </ul>
+
+            <!-- 5-Day Forecast -->
+            <div class="forecast-wrap" id="forecast-wrap">
+                <h3 class="forecast-title">5-Day Forecast Outlook</h3>
+                <div class="forecast-cards-grid" id="forecast-cards-grid"></div>
+            </div>
         </div>
     </section>
 </main>

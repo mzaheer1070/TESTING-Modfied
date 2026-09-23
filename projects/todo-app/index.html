@@ -56,21 +56,40 @@
             <input id="todo-input" type="text" placeholder="What do you need to do?" maxlength="120" required>
             
             <div class="form-sub-row">
+                <select id="todo-category" class="todo-priority-select" aria-label="Task category">
+                    <option value="work">💼 Work</option>
+                    <option value="study">🎓 Study</option>
+                    <option value="project" selected>💻 Project</option>
+                    <option value="personal">🏠 Personal</option>
+                    <option value="general">⚡ General</option>
+                </select>
                 <select id="todo-priority" class="todo-priority-select" aria-label="Task priority">
-                    <option value="normal">Normal</option>
-                    <option value="high">High</option>
+                    <option value="normal">Normal Priority</option>
+                    <option value="high">High Priority</option>
                     <option value="urgent">Urgent</option>
                 </select>
                 <input type="date" id="todo-date" class="todo-date-input" aria-label="Optional Due Date" title="Optional Due Date">
-                <button type="submit" id="btn-add-task">Add Task</button>
+                <button type="submit" id="btn-add-task">+ Add Task</button>
             </div>
         </form>
 
-        <!-- Search Bar -->
-        <div class="search-bar-wrap">
-            <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-            <input type="search" id="todo-search" placeholder="Search tasks by keyword or priority…" aria-label="Search tasks">
-            <button type="button" class="btn-clear-search" id="btn-clear-search" hidden aria-label="Clear search">×</button>
+        <!-- Search & Sort Bar -->
+        <div class="search-sort-row">
+            <div class="search-bar-wrap">
+                <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <input type="search" id="todo-search" placeholder="Search tasks by text, category, or priority…" aria-label="Search tasks">
+                <button type="button" class="btn-clear-search" id="btn-clear-search" hidden aria-label="Clear search">×</button>
+            </div>
+            <div class="sort-wrap">
+                <label for="todo-sort" class="sr-only">Sort Tasks</label>
+                <select id="todo-sort" class="todo-sort-select" aria-label="Sort tasks">
+                    <option value="newest">Sort: Newest</option>
+                    <option value="oldest">Sort: Oldest</option>
+                    <option value="due">Sort: Due Date</option>
+                    <option value="priority">Sort: Priority</option>
+                    <option value="alpha">Sort: A-Z</option>
+                </select>
+            </div>
         </div>
 
         <div class="filter-row" role="group" aria-label="Filter tasks">
@@ -80,6 +99,7 @@
                 <button type="button" class="filter-btn" data-filter="done">Done <span class="count-badge" id="count-done">0</span></button>
             </div>
             <div class="actions-group">
+                <button type="button" class="action-pill-btn" id="btn-mark-all" title="Toggle all tasks completed/active">Mark All Done</button>
                 <button type="button" class="clear-done-btn" id="clear-done-btn">Clear Completed</button>
             </div>
         </div>
@@ -88,14 +108,30 @@
         <p class="empty-msg" id="empty-msg" hidden>No tasks found.</p>
 
         <div class="todo-footer-tools">
-            <button type="button" class="tool-btn" id="btn-copy-checklist">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-                <span>Copy Checklist</span>
-            </button>
-            <button type="button" class="tool-btn" id="btn-export-tasks">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                <span>Export JSON</span>
-            </button>
+            <div class="tools-left">
+                <button type="button" class="tool-btn" id="btn-copy-checklist" title="Copy markdown checklist to clipboard">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                    <span>Copy Checklist</span>
+                </button>
+                <button type="button" class="tool-btn" id="btn-export-tasks" title="Download tasks as JSON file">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                    <span>Export JSON</span>
+                </button>
+                <button type="button" class="tool-btn" id="btn-import-tasks" title="Import tasks from a JSON file">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                    <span>Import JSON</span>
+                </button>
+                <input type="file" id="import-file-input" accept=".json,application/json" style="display: none;">
+            </div>
+            <div class="tools-right">
+                <button type="button" class="tool-btn" id="btn-reset-demo" title="Reset sample tasks">
+                    <span>↻ Load Demo</span>
+                </button>
+                <button type="button" class="tool-btn sound-toggle-btn" id="btn-sound-toggle" title="Toggle audio completion sound effects">
+                    <span id="sound-icon">🔔</span>
+                    <span id="sound-label">Sound: ON</span>
+                </button>
+            </div>
         </div>
     </section>
 </main>

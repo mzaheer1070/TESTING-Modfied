@@ -1503,6 +1503,13 @@ function setup3DTilt() {
 
 const PROJECTS_DATA = [
     {
+        id: "algo-playground",
+        title: "CS Algorithm Playground & VS Race",
+        url: "projects/algo-playground/index.html",
+        badge: "Computer Science Suite",
+        desc: "Head-to-head algorithm race visualizer, binary vs linear search duel, 2D pathfinding, and neural perceptron."
+    },
+    {
         id: "weather-dashboard",
         title: "Weather Dashboard Pro",
         url: "projects/weather-dashboard/index.html",
@@ -1835,21 +1842,34 @@ function setupDeveloperTerminal() {
             case "help":
             case "?":
                 appendLine(`
-<strong>Available Commands:</strong>
-  <span class="cmd-highlight">resume</span>      - View academic credentials & download resume (PDF)
-  <span class="cmd-highlight">about</span>       - Show developer bio, university & degree details
-  <span class="cmd-highlight">skills</span>      - Display technical proficiency breakdown
-  <span class="cmd-highlight">projects</span>    - List interactive web applications with links
-  <span class="cmd-highlight">ai [question]</span>   - Chat with Zaheer AI (Gemini Assistant)
-  <span class="cmd-highlight">weather [city]</span>- Live query via Open-Meteo API (e.g. weather Tokyo)
-  <span class="cmd-highlight">theme [light|dark]</span> - Switch between Light and Dark mode
-  <span class="cmd-highlight">cinema</span>      - Toggle 21:9 Director's cut cinematic letterbox
-  <span class="cmd-highlight">sound</span>       - Toggle UI synthesized audio feedback
-  <span class="cmd-highlight">contact</span>     - View contact methods & copy developer email
-  <span class="cmd-highlight">quote</span>       - Get a developer programming quote
-  <span class="cmd-highlight">matrix</span>      - Toggle digital matrix rain effect
-  <span class="cmd-highlight">clear</span>       - Clear terminal screen
-  <span class="cmd-highlight">exit</span>        - Close terminal drawer
+<strong>Muhammad Zaheer Developer CLI — Available Commands:</strong>
+
+<span class="cmd-highlight">[PROFILE &amp; CREDENTIALS]</span>
+  <strong>about</strong> (or <strong>whoami</strong>)  - Developer bio, university &amp; graduation info
+  <strong>skills</strong>               - Technical proficiency &amp; stack breakdown
+  <strong>resume</strong> (or <strong>cv</strong>)      - Academic credentials &amp; download PDF resume
+  <strong>contact</strong>              - Contact methods &amp; auto-copy email
+  <strong>social</strong> (or <strong>github</strong>)  - Links to GitHub and LinkedIn profiles
+
+<span class="cmd-highlight">[PROJECTS]</span>
+  <strong>projects</strong> (or <strong>ls</strong>)   - List all 5 live interactive web applications
+  <strong>open [1-5]</strong>           - Launch an application directly (e.g. 'open 1')
+  <strong>algo</strong>                 - Launch CS Algorithm Playground &amp; VS Race
+
+<span class="cmd-highlight">[TOOLS &amp; APIS]</span>
+  <strong>weather [city]</strong>      - Live meteorological query via Open-Meteo (e.g. weather Tokyo)
+  <strong>ai [question]</strong>        - Query the built-in Zaheer AI knowledge assistant
+  <strong>theme [light|dark]</strong>  - Toggle or set light/dark theme
+  <strong>sound</strong>                - Toggle synthesized audio feedback
+  <strong>matrix</strong>               - Toggle digital Matrix rain animation
+  <strong>quote</strong>                - Display an insightful computer science quote
+
+<span class="cmd-highlight">[UTILITIES]</span>
+  <strong>history</strong>              - View commands entered in this session
+  <strong>date</strong> (or <strong>time</strong>)     - Display current local date &amp; time (UTC+5)
+  <strong>echo [text]</strong>          - Print text to the terminal
+  <strong>clear</strong> (or <strong>cls</strong>)     - Clear terminal screen
+  <strong>exit</strong>                 - Close terminal drawer
                 `);
                 break;
 
@@ -1867,12 +1887,114 @@ function setupDeveloperTerminal() {
                 `);
                 break;
 
+            case "about":
+            case "whoami":
+                appendLine(`
+<strong>Muhammad Zaheer</strong> - Computer Science Student &amp; Software Developer
+  University  : National University of Technology (NUTECH), Islamabad
+  Degree      : BS Computer Science (Graduating June 2027)
+  Interests   : Software Engineering, AI/Machine Learning, Data Preprocessing, Modern Web
+  Location    : Islamabad, Pakistan (Open to Global Remote &amp; Internship Roles)
+  Bio         : Passionate about writing clean, maintainable code with solid computational foundations.
+                `);
+                break;
+
+            case "skills":
+                appendLine(`
+<strong>Technical Proficiencies &amp; Core Stack:</strong>
+  Python &amp; Machine Learning       [██████████████████░░] 88%
+  C &amp; C++ Programming             [█████████████████░░░] 85%
+  JavaScript &amp; Web Frontend (ES6+) [███████████████████░] 92%
+  SQL &amp; Relational Databases      [████████████████░░░░] 82%
+  Firebase &amp; Cloud Firestore      [████████████████░░░░] 80%
+                `);
+                break;
+
+            case "contact":
+                appendLine(`
+<strong>Contact Details (Muhammad Zaheer):</strong>
+  Email : <span class="cmd-highlight">mzaheer1070@gmail.com</span> (Copied to clipboard!)
+  Phone : <span class="cmd-highlight">+92-302-3185767</span>
+  GitHub: <a href="https://github.com/mzaheer1070" target="_blank" rel="noopener noreferrer" class="term-link">github.com/mzaheer1070</a>
+  LinkedIn: <a href="https://linkedin.com/in/mzaheer1070" target="_blank" rel="noopener noreferrer" class="term-link">linkedin.com/in/mzaheer1070</a>
+  Form  : <a href="contact.html" class="term-link">Open contact.html form</a>
+                `);
+                copyToClipboard("mzaheer1070@gmail.com", "Email copied: mzaheer1070@gmail.com");
+                break;
+
+            case "social":
+            case "github":
+            case "linkedin":
+                appendLine(`
+<strong>Connect with Muhammad Zaheer:</strong>
+  GitHub  : <a href="https://github.com/mzaheer1070" target="_blank" rel="noopener noreferrer" class="term-link">https://github.com/mzaheer1070</a>
+  LinkedIn: <a href="https://linkedin.com/in/mzaheer1070" target="_blank" rel="noopener noreferrer" class="term-link">https://linkedin.com/in/mzaheer1070</a>
+  Email   : <span class="cmd-highlight">mzaheer1070@gmail.com</span>
+                `);
+                break;
+
+            case "projects":
+            case "ls":
+                appendLine(`
+<strong>Live Interactive Applications Hosted (5):</strong>
+  1. <a href="projects/algo-playground/index.html" class="term-link">CS Algorithm Playground &amp; VS Race</a> (Race Visualizer, Search &amp; Pathfinding)
+  2. <a href="projects/weather-dashboard/index.html" class="term-link">Weather Dashboard Pro</a> (Open-Meteo &amp; Live AQI Analytics)
+  3. <a href="projects/api-dashboard/index.html" class="term-link">API Status Dashboard</a> (Real-time HTTP Prober &amp; cURL Export)
+  4. <a href="projects/todo-app/index.html" class="term-link">Todo Application</a> (Task Management, Categories &amp; Audio FX)
+  5. <a href="projects/weather-app/index.html" class="term-link">Minimal Weather App</a> (5-Day Outlook &amp; Quick City Search)
+
+<em>Tip: Type 'open 1' through 'open 5' to launch any application directly!</em>
+                `);
+                break;
+
+            case "open":
+            case "launch":
+            case "run":
+                const pNum = parseInt(arg, 10);
+                if (pNum >= 1 && pNum <= PROJECTS_DATA.length) {
+                    const p = PROJECTS_DATA[pNum - 1];
+                    appendLine(`Launching <strong>${escapeHTML(p.title)}</strong>...`);
+                    window.location.href = p.url;
+                } else if (arg) {
+                    const match = PROJECTS_DATA.find(p => p.id.includes(arg.toLowerCase()) || p.title.toLowerCase().includes(arg.toLowerCase()));
+                    if (match) {
+                        appendLine(`Launching <strong>${escapeHTML(match.title)}</strong>...`);
+                        window.location.href = match.url;
+                    } else {
+                        appendLine(`<span class="term-error">Project not found: '${escapeHTML(arg)}'. Choose a number from 1 to ${PROJECTS_DATA.length} or type 'projects'.</span>`);
+                    }
+                } else {
+                    appendLine(`Usage: <span class="cmd-highlight">open [1-${PROJECTS_DATA.length}]</span> (e.g. 'open 1' for Algorithm Playground).`);
+                }
+                break;
+
             case "lab":
             case "algo":
             case "playground":
             case "vs":
+                appendLine("Navigating to CS Algorithm Playground &amp; VS Race...");
                 window.location.href = "projects/algo-playground/index.html";
-                appendLine("Navigating to CS Algorithm Playground & VS Race...");
+                break;
+
+            case "cat":
+                if (!arg) {
+                    appendLine("Usage: cat [about|skills|resume|contact|projects]");
+                } else {
+                    const file = arg.toLowerCase().trim();
+                    if (file === "about" || file === "whoami") {
+                        handleCommand("about");
+                    } else if (file === "skills") {
+                        handleCommand("skills");
+                    } else if (file === "resume" || file === "cv") {
+                        handleCommand("resume");
+                    } else if (file === "contact") {
+                        handleCommand("contact");
+                    } else if (file === "projects" || file === "ls") {
+                        handleCommand("projects");
+                    } else {
+                        appendLine(`<span class="term-error">cat: ${escapeHTML(arg)}: No such file. Try: cat about, cat skills, cat resume.</span>`);
+                    }
+                }
                 break;
 
             case "ai":
@@ -1881,7 +2003,7 @@ function setupDeveloperTerminal() {
             case "ask":
                 if (window.openGeminiChat) {
                     window.openGeminiChat(arg || "");
-                    appendLine(`Launched Zaheer AI Chatbot... ${arg ? `Asking: "<em>${arg}</em>"` : ""}`);
+                    appendLine(`Launched Zaheer AI Chatbot... ${arg ? `Asking: "<em>${escapeHTML(arg)}</em>"` : ""}`);
                 }
                 break;
 
@@ -1900,12 +2022,6 @@ function setupDeveloperTerminal() {
                 }
                 break;
 
-            case "bg":
-            case "background":
-                AmbientBackgroundEngine.setModeById("constellation");
-                appendLine("Background atmosphere: <strong>Constellation starfield active</strong>");
-                break;
-
             case "cinema":
             case "cinematic":
             case "directors":
@@ -1920,67 +2036,10 @@ function setupDeveloperTerminal() {
                 appendLine(`Audio Sound FX: <strong>${snd ? "ENABLED 🔊" : "MUTED 🔇"}</strong>`);
                 break;
 
-            case "projects":
-            case "ls":
-                appendLine(`
-<strong>Interactive Projects Hosted (4):</strong>
-  1. <a href="projects/weather-dashboard/index.html" class="term-link" target="_blank">Weather Dashboard Pro (Open-Meteo & Live AQI Analytics)</a>
-  2. <a href="projects/api-dashboard/index.html" class="term-link" target="_blank">API Status Dashboard (Real-time HTTP Prober)</a>
-  3. <a href="projects/todo-app/index.html" class="term-link" target="_blank">Todo Application (LocalStorage State Manager)</a>
-  4. <a href="projects/weather-app/index.html" class="term-link" target="_blank">Minimal Weather App (City Search)</a>
-<em>Tip: Use 'preview [1-4]' to launch in the in-page sandbox!</em>
-                `);
-                break;
-
-            case "preview":
-                const pNum = parseInt(arg);
-                if (pNum >= 1 && pNum <= PROJECTS_DATA.length) {
-                    const p = PROJECTS_DATA[pNum - 1];
-                    appendLine(`Launching ${p.title} in sandbox...`);
-                    if (window.openProjectSandbox) window.openProjectSandbox(p.url, p.title);
-                } else {
-                    appendLine(`Please specify project number between 1 and ${PROJECTS_DATA.length} (e.g. 'preview 1').`);
-                }
-                break;
-
-            case "skills":
-                appendLine(`
-<strong>Technical Proficiencies:</strong>
-  Python & Machine Learning       [██████████████████░░] 88%
-  C & C++ Programming             [█████████████████░░░] 85%
-  JavaScript & Modern Web (ES6+)  [███████████████████░] 92%
-  SQL & Relational Databases      [████████████████░░░░] 82%
-  Firebase & Firestore            [████████████████░░░░] 80%
-                `);
-                break;
-
-            case "about":
-            case "whoami":
-                appendLine(`
-<strong>Muhammad Zaheer</strong> - Computer Science Student & Software Developer
-Education   : BS Computer Science @ National University of Technology (NUTECH), Islamabad
-Graduation  : June, 2027
-Interests   : Software Development, AI/Machine Learning, Data Engineering, Web Architecture
-Location    : Islamabad, Pakistan | Availability: Seeking Internship & Project Opportunities.
-                `);
-                break;
-
-            case "contact":
-                appendLine(`
-<strong>Contact Details (Muhammad Zaheer):</strong>
-  Email : <span class="cmd-highlight">mzaheer1070@gmail.com</span>
-  Phone : <span class="cmd-highlight">+92-302-3185767</span>
-  Resume: <a href="Muhammad_Zaheer_Resume.pdf" download="Muhammad_Zaheer_Resume.pdf" class="term-link">📥 Download PDF Resume</a>
-  Form  : <a href="contact.html" class="term-link">Open contact.html form</a>
-                `);
-                copyToClipboard("mzaheer1070@gmail.com", "Email copied: mzaheer1070@gmail.com");
-                break;
-
             case "weather":
-                const city = arg || "Tokyo";
+                const city = arg || "Islamabad";
                 appendLine(`Connecting to Open-Meteo API for <strong>${escapeHTML(city)}</strong>...`);
                 try {
-                    // Geocoding query
                     const geoRes = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1&language=en&format=json`);
                     const geoData = await geoRes.json();
                     
@@ -2008,17 +2067,6 @@ Location    : Islamabad, Pakistan | Availability: Seeking Internship & Project O
                 }
                 break;
 
-            case "theme":
-                if (arg === "dark" || arg === "light") {
-                    setTheme(arg);
-                    appendLine(`Theme set to ${arg}.`);
-                } else {
-                    const next = (document.documentElement.dataset.theme || "dark") === "dark" ? "light" : "dark";
-                    setTheme(next);
-                    appendLine(`Theme toggled to ${next}.`);
-                }
-                break;
-
             case "matrix":
                 toggleMatrixRain();
                 appendLine("Matrix digital rain mode toggled! 🟩");
@@ -2029,9 +2077,29 @@ Location    : Islamabad, Pakistan | Availability: Seeking Internship & Project O
                     "\"Simplicity is prerequisite for reliability.\" — Edsger W. Dijkstra",
                     "\"First, solve the problem. Then, write the code.\" — John Johnson",
                     "\"Make it work, make it right, make it fast.\" — Kent Beck",
-                    "\"Clean code always looks like it was written by someone who cares.\" — Robert C. Martin"
+                    "\"Clean code always looks like it was written by someone who cares.\" — Robert C. Martin",
+                    "\"The best error message is the one that never shows up.\" — Thomas Fuchs"
                 ];
                 appendLine(quotes[Math.floor(Math.random() * quotes.length)]);
+                break;
+
+            case "history":
+                if (!history.length) {
+                    appendLine("No commands in history yet.");
+                } else {
+                    appendLine("<strong>Command History:</strong><br>" + history.map((c, i) => `  ${i + 1}. ${escapeHTML(c)}`).join("<br>"));
+                }
+                break;
+
+            case "date":
+            case "time":
+                const now = new Date();
+                const timeStr = now.toLocaleString("en-US", { timeZone: "Asia/Karachi", dateStyle: "full", timeStyle: "medium" });
+                appendLine(`<strong>Current Time (PKT / UTC+5):</strong> ${timeStr}`);
+                break;
+
+            case "echo":
+                appendLine(escapeHTML(arg || ""));
                 break;
 
             case "sudo":
@@ -2048,7 +2116,7 @@ Location    : Islamabad, Pakistan | Availability: Seeking Internship & Project O
                 break;
 
             default:
-                appendLine(`<span class="term-error">Command not found: '${escapeHTML(cmdStr)}'. Type <span class="cmd-highlight">help</span> for commands.</span>`);
+                appendLine(`<span class="term-error">Command not found: '${escapeHTML(cmdStr)}'. Type <span class="cmd-highlight">help</span> for available commands.</span>`);
                 break;
         }
 

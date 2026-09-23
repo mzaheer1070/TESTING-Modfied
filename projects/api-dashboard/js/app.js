@@ -15,15 +15,19 @@ const statsGrid = document.getElementById("stats-grid");
 const logList = document.getElementById("log-list");
 const refreshButton = document.getElementById("refresh-log");
 const statusLine = document.getElementById("dashboard-status");
+const histCountAll = document.getElementById("hist-count-all");
+const histCountOk = document.getElementById("hist-count-ok");
+const histCountError = document.getElementById("hist-count-error");
 
 let requestHistory = [];
 let autoRefreshTimer = null;
+let currentHistFilter = "all";
 
 function shortUrl(url) {
     try {
         const parsed = new URL(url);
         return `${parsed.hostname}${parsed.pathname}`;
-    } catch (error) {
+    } catch {
         return url;
     }
 }
@@ -33,6 +37,17 @@ function statusClass(status, ok) {
     if (status >= 200 && status < 300) return "ok";
     if (status >= 400) return "warn";
     return "warn";
+}
+
+function formatByteSize(str) {
+    if (!str) return "0 B";
+    try {
+        const bytes = new TextEncoder().encode(str).length;
+        if (bytes < 1024) return `${bytes} B`;
+        return `${(bytes / 1024).toFixed(1)} KB`;
+    } catch {
+        return `${str.length} chars`;
+    }
 }
 
 async function runProbe(probe) {
@@ -80,6 +95,8 @@ async function runProbe(probe) {
             latency,
             ok: response.ok,
             headers: responseHeaders,
+            sentHeaders: probe.headers || {},
+            sentBody: probe.body || null,
             body: bodyText,
             time: new Date()
         };
@@ -93,6 +110,8 @@ async function runProbe(probe) {
             latency: Math.round(performance.now() - start),
             ok: false,
             headers: [],
+            sentHeaders: probe.headers || {},
+            sentBody: probe.body || null,
             body: `Request failed: ${error?.message || "Network Error"}\n\nNote: Browsers block cross-origin requests without CORS headers. Try a CORS-friendly API like GitHub or Open-Meteo.`,
             time: new Date()
         };
@@ -103,16 +122,19 @@ function renderStats(results) {
     const total = results.length;
     const successes = results.filter((item) => item.ok).length;
     const errors = total - successes;
+    const latencies = results.map(r => r.latency).sort((a, b) => a - b);
     const avgLatency = total
         ? Math.round(results.reduce((sum, item) => sum + item.latency, 0) / total)
         : 0;
+    const minLatency = latencies.length ? latencies[0] : 0;
+    const maxLatency = latencies.length ? latencies[latencies.length - 1] : 0;
     const successRate = total ? ((successes / total) * 100).toFixed(1) : "0.0";
 
     const stats = [
-        { label: "Requests (this scan)", value: total },
-        { label: "Success rate", value: `${successRate}%` },
-        { label: "Avg latency (real)", value: `${avgLatency} ms` },
-        { label: "Failed requests", value: errors }
+        { label: "Probes Executed", value: total },
+        { label: "Success Rate", value: `${successRate}%` },
+        { label: "Latency (Min / Avg / Max)", value: `${minLatency} / ${avgLatency} / ${maxLatency} ms` },
+        { label: "Failed Probes", value: errors }
     ];
 
     statsGrid.innerHTML = stats.map((stat) => `
@@ -123,21 +145,43 @@ function renderStats(results) {
     `).join("");
 }
 
+function updateHistoryCounters() {
+    const total = requestHistory.length;
+    const okCount = requestHistory.filter(r => r.ok).length;
+    const errCount = total - okCount;
+
+    if (histCountAll) histCountAll.textContent = `(${total})`;
+    if (histCountOk) histCountOk.textContent = `(${okCount})`;
+    if (histCountError) histCountError.textContent = `(${errCount})`;
+}
+
 function renderLog(entries) {
-    if (!entries.length) {
-        logList.innerHTML = `<li class="log-empty">No requests yet.</li>`;
+    updateHistoryCounters();
+
+    const filtered = entries.filter(entry => {
+        if (currentHistFilter === "ok") return entry.ok;
+        if (currentHistFilter === "error") return !entry.ok;
+        return true;
+    });
+
+    if (!filtered.length) {
+        logList.innerHTML = `<li class="log-empty">No telemetry records match this filter.</li>`;
         return;
     }
 
-    logList.innerHTML = entries.map((entry) => {
+    logList.innerHTML = filtered.map((entry) => {
         const label = statusClass(entry.status, entry.ok);
         const statusText = entry.status === 0 ? "ERR" : entry.status;
+        const sizeStr = formatByteSize(entry.body);
 
         return `
-            <li data-request-id="${entry.id}" title="Click to inspect response & headers">
+            <li data-request-id="${entry.id}" title="Click to inspect response, headers & cURL">
                 <span class="status ${label}">${statusText}</span>
-                <span>${entry.method} ${shortUrl(entry.url)}</span>
-                <span>${entry.latency} ms</span>
+                <span><strong>${entry.method}</strong> ${shortUrl(entry.url)}</span>
+                <span style="display: inline-flex; align-items: center; gap: 8px;">
+                    <small style="color: var(--muted);">${sizeStr}</small>
+                    <strong>${entry.latency} ms</strong>
+                </span>
             </li>
         `;
     }).join("");
@@ -148,9 +192,11 @@ const inspectorCard = document.getElementById("inspector-card");
 const inspectorStatusBadge = document.getElementById("inspector-status-badge");
 const inspectorUrl = document.getElementById("inspector-url");
 const inspectorLatency = document.getElementById("inspector-latency");
+const inspectorSize = document.getElementById("inspector-size");
 const inspectorBodyCode = document.getElementById("inspector-body-code");
 const inspectorHeadersBody = document.getElementById("inspector-headers-body");
 const headersCount = document.getElementById("headers-count");
+const btnCopyCurl = document.getElementById("btn-copy-curl");
 const btnCopyResponse = document.getElementById("btn-copy-response");
 const btnCloseInspector = document.getElementById("btn-close-inspector");
 const btnToggleOptions = document.getElementById("btn-toggle-options");
@@ -160,6 +206,26 @@ const probeBody = document.getElementById("probe-body");
 const exportLogBtn = document.getElementById("export-log");
 
 let currentInspectedResult = null;
+
+function generateCurlCommand(req) {
+    if (!req) return "";
+    let curl = `curl -X ${req.method} "${req.url}"`;
+    
+    // Custom sent headers
+    if (req.sentHeaders && typeof req.sentHeaders === "object") {
+        Object.entries(req.sentHeaders).forEach(([k, v]) => {
+            curl += ` \\\n  -H "${k}: ${v}"`;
+        });
+    }
+    
+    // Body for POST/PUT/PATCH
+    if (req.sentBody && ["POST", "PUT", "PATCH"].includes(req.method)) {
+        const cleanBody = req.sentBody.replace(/'/g, "'\\''");
+        curl += ` \\\n  -d '${cleanBody}'`;
+    }
+
+    return curl;
+}
 
 function showInspector(result) {
     if (!inspectorCard || !result) return;
@@ -173,6 +239,10 @@ function showInspector(result) {
 
     inspectorUrl.textContent = `${result.method} ${result.url}`;
     inspectorLatency.textContent = `⏱ ${result.latency} ms`;
+
+    if (inspectorSize) {
+        inspectorSize.textContent = `Size: ${formatByteSize(result.body)}`;
+    }
 
     inspectorBodyCode.textContent = result.body || "(No response payload)";
 
@@ -209,6 +279,22 @@ if (btnCloseInspector) {
     });
 }
 
+// Copy cURL button
+if (btnCopyCurl) {
+    btnCopyCurl.addEventListener("click", () => {
+        if (!currentInspectedResult) return;
+        const curlCmd = generateCurlCommand(currentInspectedResult);
+        navigator.clipboard.writeText(curlCmd).then(() => {
+            const prev = btnCopyCurl.textContent;
+            btnCopyCurl.textContent = "cURL Copied!";
+            setTimeout(() => {
+                btnCopyCurl.textContent = prev;
+            }, 1800);
+        });
+    });
+}
+
+// Copy Body button
 if (btnCopyResponse) {
     btnCopyResponse.addEventListener("click", () => {
         if (!currentInspectedResult || !currentInspectedResult.body) return;
@@ -251,6 +337,16 @@ if (btnToggleOptions && probeAdvancedPanel) {
     });
 }
 
+// History Filter Pills
+document.querySelectorAll(".hist-filter-pill").forEach(pill => {
+    pill.addEventListener("click", () => {
+        document.querySelectorAll(".hist-filter-pill").forEach(p => p.classList.remove("is-active"));
+        pill.classList.add("is-active");
+        currentHistFilter = pill.dataset.histFilter;
+        renderLog(requestHistory);
+    });
+});
+
 // Click history row to inspect
 if (logList) {
     logList.addEventListener("click", (e) => {
@@ -292,7 +388,7 @@ async function scanApis() {
 
     const results = await Promise.all(PROBES.map((probe) => runProbe(probe)));
 
-    requestHistory = [...results, ...requestHistory].slice(0, 15);
+    requestHistory = [...results, ...requestHistory].slice(0, 25);
     renderStats(results);
     renderLog(requestHistory);
 
@@ -300,8 +396,8 @@ async function scanApis() {
 
     if (statusLine) {
         statusLine.textContent = failures
-            ? `${failures} request(s) failed — status codes and latency above are from real network calls.`
-            : "All probes succeeded. Status codes and latency are from real network calls.";
+            ? `${failures} probe(s) failed — status codes and latency above are from real network calls.`
+            : "All probes succeeded. Real status codes, payload sizes & latency calculated.";
         statusLine.dataset.type = failures ? "warn" : "success";
     }
 
@@ -368,7 +464,7 @@ if (customForm) {
 
         const result = await runProbe({ method, url, headers, body });
         requestHistory.unshift(result);
-        requestHistory = requestHistory.slice(0, 25);
+        requestHistory = requestHistory.slice(0, 30);
         renderLog(requestHistory);
         showInspector(result);
 

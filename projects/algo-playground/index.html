@@ -296,7 +296,16 @@
             <div class="controls-row">
                 <div class="control-group">
                     <label for="searchTargetVal">Target Value:</label>
-                    <input type="number" id="searchTargetVal" class="form-select" style="width: 90px;" min="1" max="100" value="48" aria-label="Search target value">
+                    <input type="number" id="searchTargetVal" class="form-select" style="width: 90px;" min="1" max="999" value="48" aria-label="Search target value">
+                </div>
+                <div class="control-group">
+                    <label for="searchArraySize">Array Size:</label>
+                    <select id="searchArraySize" class="form-select">
+                        <option value="16">16 Items (log₂=4)</option>
+                        <option value="32" selected>32 Items (log₂=5)</option>
+                        <option value="64">64 Items (log₂=6)</option>
+                        <option value="100">100 Items (log₂≈7)</option>
+                    </select>
                 </div>
                 <div class="control-group slider-group">
                     <div class="speed-label-wrap">
@@ -327,7 +336,7 @@
                     <div class="search-array-track" id="linearArrayTrack" aria-label="Linear search visualization track"></div>
                     <div class="search-scroll-hint">
                         <span>⇄ Scroll / drag bar below to browse array</span>
-                        <span>32 Elements</span>
+                        <span id="linearSizeHint">32 Elements</span>
                     </div>
                 </div>
             </div>
@@ -350,7 +359,7 @@
                     <div class="search-array-track" id="binaryArrayTrack" aria-label="Binary search visualization track"></div>
                     <div class="search-scroll-hint">
                         <span>⇄ Scroll / drag bar below to browse array</span>
-                        <span>32 Elements</span>
+                        <span id="binarySizeHint">32 Elements</span>
                     </div>
                 </div>
             </div>
@@ -371,7 +380,7 @@
             </div>
             <div class="telemetry-box">
                 <span class="telemetry-label">Max Theoretical Steps</span>
-                <strong class="telemetry-val">log₂(32) = 5</strong>
+                <strong class="telemetry-val" id="searchMaxSteps">log₂(32) = 5</strong>
             </div>
         </div>
     </section>
