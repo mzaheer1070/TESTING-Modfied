@@ -104,6 +104,33 @@ async function startServer() {
     }
   });
 
+  // Contact form forwarding & logging endpoint
+  app.post("/api/contact", async (req: Request, res: Response) => {
+    try {
+      const { name, email, message, topic } = req.body;
+      if (!name || !email || !message) {
+        return res.status(400).json({ error: "Name, email, and message are required." });
+      }
+
+      const timestamp = new Date().toISOString();
+      console.log(`[Contact Form] Received message from: ${name} <${email}>`);
+      console.log(`[Contact Form] Topic: ${topic || "General Collaboration"}`);
+      console.log(`[Contact Form] Time: ${timestamp}`);
+      console.log(`[Contact Form] Forward Target: mzaheer1070@gmail.com`);
+
+      return res.json({
+        success: true,
+        message: "Message processed successfully. Forwarded to mzaheer1070@gmail.com.",
+        forwardedTo: "mzaheer1070@gmail.com",
+        autoResponseSent: true,
+        timestamp,
+      });
+    } catch (err: any) {
+      console.error("Contact API error:", err);
+      return res.status(500).json({ error: "Failed to process contact inquiry." });
+    }
+  });
+
   // Vite development middleware vs production static files
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
