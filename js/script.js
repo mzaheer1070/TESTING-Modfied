@@ -1617,7 +1617,7 @@ function setupCommandPalette() {
         }},
 
         // Quick Tools & Actions
-        { title: "Ask Zaheer AI (Gemini Chat Assistant)", category: "Actions", icon: "✨", action: () => {
+        { title: "AI Assistant (Chat & Q&A)", category: "Actions", icon: "✨", action: () => {
             if (window.openGeminiChat) window.openGeminiChat();
         }},
         { title: "Toggle Light / Dark Theme Mode", category: "Actions", icon: "🌗", action: () => {
@@ -1858,10 +1858,9 @@ function setupDeveloperTerminal() {
 
 <span class="cmd-highlight">[TOOLS &amp; APIS]</span>
   <strong>weather [city]</strong>      - Live meteorological query via Open-Meteo (e.g. weather Tokyo)
-  <strong>ai [question]</strong>        - Query the built-in Zaheer AI knowledge assistant
+  <strong>ai [question]</strong>        - Query the built-in AI assistant
   <strong>theme [light|dark]</strong>  - Toggle or set light/dark theme
   <strong>sound</strong>                - Toggle synthesized audio feedback
-  <strong>matrix</strong>               - Toggle digital Matrix rain animation
   <strong>quote</strong>                - Display an insightful computer science quote
 
 <span class="cmd-highlight">[UTILITIES]</span>
@@ -2067,11 +2066,6 @@ function setupDeveloperTerminal() {
                 }
                 break;
 
-            case "matrix":
-                toggleMatrixRain();
-                appendLine("Matrix digital rain mode toggled! 🟩");
-                break;
-
             case "quote":
                 const quotes = [
                     "\"Simplicity is prerequisite for reliability.\" — Edsger W. Dijkstra",
@@ -2204,59 +2198,6 @@ function setupDeveloperTerminal() {
 }
 
 /* ==========================================================================
-   MATRIX CANVAS EFFECT
-   ========================================================================== */
-
-function toggleMatrixRain() {
-    let canvas = document.getElementById("matrixCanvas");
-    if (canvas) {
-        canvas.remove();
-        return;
-    }
-
-    canvas = document.createElement("canvas");
-    canvas.id = "matrixCanvas";
-    canvas.className = "matrix-canvas";
-    document.body.appendChild(canvas);
-
-    const ctx = canvas.getContext("2d");
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-
-    const chars = "01ZAHEER101010101010101010101010101010101010101010";
-    const fontSize = 14;
-    const columns = Math.floor(canvas.width / fontSize);
-    const drops = Array(columns).fill(1);
-
-    function draw() {
-        ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        ctx.fillStyle = "#10b981";
-        ctx.font = `${fontSize}px 'JetBrains Mono', monospace`;
-
-        for (let i = 0; i < drops.length; i++) {
-            const text = chars[Math.floor(Math.random() * chars.length)];
-            ctx.fillText(text, i * fontSize, drops[i] * fontSize);
-
-            if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
-                drops[i] = 0;
-            }
-            drops[i]++;
-        }
-    }
-
-    const interval = setInterval(draw, 33);
-
-    window.addEventListener("resize", () => {
-        if (canvas) {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        }
-    });
-}
-
-/* ==========================================================================
    CONTACT FORM VALIDATION & TOPIC CHIPS
    ========================================================================== */
 
@@ -2363,12 +2304,11 @@ function setupGeminiChatbot() {
     launcher.id = "geminiChatLauncher";
     launcher.className = "gemini-chat-launcher";
     launcher.setAttribute("type", "button");
-    launcher.setAttribute("aria-label", "Ask Zaheer AI (Portfolio Assistant)");
-    launcher.setAttribute("title", "Chat with Zaheer AI (Powered by Gemini)");
+    launcher.setAttribute("aria-label", "AI Assistant");
+    launcher.setAttribute("title", "Open AI Assistant");
     launcher.innerHTML = `
-        <span class="gemini-launcher-icon">✨</span>
-        <span class="gemini-launcher-label">Ask Zaheer AI</span>
-        <span class="gemini-chat-badge">Gemini</span>
+        <span class="gemini-launcher-icon" aria-hidden="true">✨</span>
+        <span class="gemini-launcher-label">AI</span>
     `;
     document.body.appendChild(launcher);
 
