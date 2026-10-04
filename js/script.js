@@ -706,7 +706,7 @@ function copyToClipboard(text, successMsg = "Copied to clipboard!") {
     });
 }
 
-// Global unobtrusive event listener for copy email buttons
+// Global unobtrusive event listener for copy email buttons and back-to-top
 document.addEventListener("click", (e) => {
     const copyBtn = e.target && e.target.closest ? e.target.closest("[data-copy-email]") : null;
     if (copyBtn) {
@@ -714,6 +714,14 @@ document.addEventListener("click", (e) => {
         const email = copyBtn.getAttribute("data-copy-email") || "mzaheer1070@gmail.com";
         const msg = copyBtn.getAttribute("data-copy-msg") || `Developer email copied: ${email}`;
         copyToClipboard(email, msg);
+        return;
+    }
+
+    const backToTopBtn = e.target && e.target.closest ? e.target.closest("[data-back-to-top]") : null;
+    if (backToTopBtn) {
+        e.preventDefault();
+        window.scrollTo({ top: 0, behavior: prefersReducedMotion ? "auto" : "smooth" });
+        return;
     }
 });
 

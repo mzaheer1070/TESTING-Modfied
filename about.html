@@ -409,14 +409,42 @@
 </main>
 
 <footer class="site-footer">
-    <div class="container footer-content">
-        <div class="footer-links">
-            <a class="footer-link" href="index.html">Home</a>
-            <a class="footer-link" href="about.html">About</a>
-            <a class="footer-link" href="projects.html">Projects</a>
-            <a class="footer-link" href="contact.html">Contact</a>
+    <div class="container footer-wrap">
+        <div class="footer-primary-row">
+            <nav class="footer-nav" aria-label="Footer navigation">
+                <a class="footer-nav-link" href="index.html">Home</a>
+                <span class="footer-sep" aria-hidden="true">/</span>
+                <a class="footer-nav-link" href="about.html">About</a>
+                <span class="footer-sep" aria-hidden="true">/</span>
+                <a class="footer-nav-link" href="projects.html">Projects</a>
+                <span class="footer-sep" aria-hidden="true">/</span>
+                <a class="footer-nav-link" href="contact.html">Contact</a>
+            </nav>
+
+            <div class="footer-meta-right">
+                <span class="footer-location">
+                    <span class="status-beacon" aria-hidden="true"></span>
+                    <span>Islamabad, PK &bull; UTC+5</span>
+                </span>
+                <button class="footer-top-btn" type="button" data-back-to-top aria-label="Back to top">
+                    <span>Back to top</span>
+                    <span aria-hidden="true">&uarr;</span>
+                </button>
+            </div>
         </div>
-        <p class="footer-copy">&copy; 2026 Muhammad Zaheer. Computer Science Student, National University of Technology (NUTECH).</p>
+
+        <div class="footer-divider" aria-hidden="true"></div>
+
+        <div class="footer-secondary-row">
+            <p class="footer-copy">&copy; 2026 Muhammad Zaheer. Computer Science Student, National University of Technology (NUTECH).</p>
+            <div class="footer-sig">
+                <a href="https://github.com/mzaheer1070" target="_blank" rel="noopener noreferrer" class="footer-sig-link">GitHub</a>
+                <span aria-hidden="true">&bull;</span>
+                <a href="https://linkedin.com/in/mzaheer1070" target="_blank" rel="noopener noreferrer" class="footer-sig-link">LinkedIn</a>
+                <span aria-hidden="true">&bull;</span>
+                <button type="button" class="footer-sig-link" data-copy-email="mzaheer1070@gmail.com">Copy Email</button>
+            </div>
+        </div>
     </div>
 </footer>
 </body>
